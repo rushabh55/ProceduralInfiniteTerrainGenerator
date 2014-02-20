@@ -1,0 +1,16 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GenerateHeightMap.cs">
+    <Files>
+      <File FileName="Assets\Scripts\LTreeController.cs" Line="355" Column="5" />
+      <File FileName="Assets\003 Drawing Lines\src\LinesGR.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\GenerateHeightMap.cs" Line="41" Column="9" />
+      <File FileName="Assets\TerrainToolkit\TerrainToolkit.cs" Line="2065" Column="30" />
+      <File FileName="Assets\TerrainToolkit\Editor\TerrainToolkitEditor.cs" Line="209" Column="19" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
