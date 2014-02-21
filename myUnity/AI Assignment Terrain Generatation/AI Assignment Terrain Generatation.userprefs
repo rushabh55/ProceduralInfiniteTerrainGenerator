@@ -1,0 +1,15 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\terrainMove3x3.cs">
+    <Files>
+      <File FileName="Assets\terrainMove3x3.cs" Line="29" Column="11" />
+      <File FileName="Assets\terrainMove3x3.cs" Line="29" Column="11" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="C:\Users\Rushabh\Documents\AI Assignment Terrain Generatation\Assets\terrainMove3x3.cs" line="146" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
