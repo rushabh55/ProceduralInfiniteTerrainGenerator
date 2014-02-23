@@ -180,6 +180,7 @@ public class terrainMove3x3 : MonoBehaviour {
     }
 
 
+
     //void Reorder2()
     //{	
 
@@ -359,4 +360,10 @@ public class terrainMove3x3 : MonoBehaviour {
         return heightMap;
     }
 	
+}
+
+
+public enum moveDirection {
+	Linear,
+	Diagonal
 }

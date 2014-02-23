@@ -46,6 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\move3X3_2.cs" />
      <Compile Include="Assets\terrainMove.cs" />
      <Compile Include="Assets\terrainMove3x3.cs" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
