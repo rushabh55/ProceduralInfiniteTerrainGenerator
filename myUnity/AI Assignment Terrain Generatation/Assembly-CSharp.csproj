@@ -46,10 +46,13 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\adjustDistance.cs" />
      <Compile Include="Assets\move3X3_2.cs" />
      <Compile Include="Assets\terrainMove.cs" />
      <Compile Include="Assets\terrainMove3x3.cs" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
+     <None Include="Assets\Standard Assets\Water (Basic)\Sources\Shaders\FX-Water Simple.shader" />
+     <None Include="Assets\TerrainShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">

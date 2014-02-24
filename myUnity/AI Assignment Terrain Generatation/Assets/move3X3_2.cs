@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Threading;
+using System.Text;
 
 public class move3X3_2 : MonoBehaviour {
 
     public float moveSpeed = 125;
 
     private List<terrainChunks> terrains = new List<terrainChunks>();
+    private List<Terrain> terrainsRendered = new List<Terrain>();
 	public GameObject frontCube = null;
     public GameObject backCube = null;
 	public Dimensions _dimension;
@@ -25,11 +27,30 @@ public class move3X3_2 : MonoBehaviour {
     private terrainChunks _trailingTerrain;
 
 	// Use this for initialization
-	void Start () {		
-		generateTerrains();
+	void Start () {
+        
+        test[1] = new SplatPrototype();
+        test[0] = new SplatPrototype();
+        test[2] = new SplatPrototype();
+
+        test[0].texture = texDirt;
+        test[0].tileOffset = new Vector2(0, 0);
+        test[0].tileSize = new Vector2(Twidth, Tlength);
+
+        test[1].texture = texGrass;
+        test[1].tileOffset = new Vector2(0, 0);
+        test[1].tileSize = new Vector2(Twidth, Tlength);
+
+        test[2].texture = texWater;
+        test[2].tileOffset = new Vector2(0, 0);
+        test[2].tileSize = new Vector2(Twidth, Tlength);
+		generateTerrains(false);
+        
 		var _terrainCollection = GameObject.FindGameObjectsWithTag("Terrain");
         var playerPosStartTerrain = _terrainCollection.ElementAt(chunkSize / 2).GetComponent<Terrain>();
         this.transform.position = new Vector3(playerPosStartTerrain.transform.position.x, playerPosStartTerrain.transform.position.y - 100, playerPosStartTerrain.transform.position.z);
+
+
 
         int i = 0;
         int chunk = (int)Math.Sqrt(chunkSize);
@@ -65,52 +86,125 @@ public class move3X3_2 : MonoBehaviour {
             terrains.Add(TChunk);
         }
         
-        
+		
+		setNeighbours();
 	}
 
-	void generateTerrains() {
-        float x = 0, y = 0;
+    private void setNeighbours()
+    {
+        //for (int i = 0; i < (int)Math.Sqrt(chunkSize); i++)
+        //{
+        //    for(int j =0; j < (int)Math.Sqrt(chunkSize); j++)
+        //    {
+        //        //terrains[i].terrainChunk[j]..ToString();
+        //    }
+        //}
+
+        terrains[0].terrainChunk[0].SetNeighbors(null, terrains[1].terrainChunk[0], terrains[0].terrainChunk[1], null);
+        terrains[0].terrainChunk[1].SetNeighbors(terrains[0].terrainChunk[0], terrains[1].terrainChunk[1], terrains[0].terrainChunk[2], null);
+        terrains[0].terrainChunk[2].SetNeighbors(terrains[0].terrainChunk[1], terrains[1].terrainChunk[2], null, null);
+        terrains[1].terrainChunk[0].SetNeighbors(null, terrains[2].terrainChunk[0], terrains[1].terrainChunk[1], terrains[0].terrainChunk[0]);
+    }
+
+    private void AddTrees(Vector3 pos)
+    {
+        var t = (GameObject)Instantiate(Resources.Load("Palm"));
+        t.transform.position = pos;
+        //Debug.Log(pos);
+    }
+
+	void generateTerrains(bool regenerate) {
+     
+        float x = 0, y = 0, z = 0;
         float _terrainWidth = Twidth, _terrainLength = Tlength;
-        for (int i = 0; i < (int)Math.Sqrt(9); i++)
+        
+        if (!regenerate)
         {
-            for (int j = 0; j < (int)Math.Sqrt(9); j++)
+            for (int i = 0; i < (int)Math.Sqrt(chunkSize); i++)
+            {
+                for (int j = 0; j < (int)Math.Sqrt(chunkSize); j++)
+                {
+                    x += _terrainWidth;
+                    _terrainPosition = new Vector3(x, 0, y);
+                    PerlinGenerate3X3();
+                    Debug.Log(_terrainPosition);
+                }
+                x = 0;
+                y += _terrainLength;
+            }
+        }
+        else
+        {
+			_terrainPosition = frontCube.transform.position;
+            x -= _terrainWidth * 2;
+            z = _terrainPosition.z;
+            for (int j = 0; j < (int)Math.Sqrt(chunkSize); j++)
             {
                 x += _terrainWidth;
-                _terrainPosition = new Vector3(x, 0, y);
+                _terrainPosition = new Vector3(x, 0, z);
                 PerlinGenerate3X3();
             }
-            x = 0;
-            y += _terrainLength;
         }
+
 	}
+
+    public bool reorderEnabled = true;
+
+   
 
 	// Update is called once per frame
 	void Update () {
+      //  AdjustPostions();
         Move();
+
         if (ReorderReqd())
         {
-            terrainChunks c = findTerrainReorderChunks();
-            if(c != null)
+            if (reorderEnabled)
             {
-                Reorder(c);
-                _trailingTerrain = c;
+                terrainChunks c = findTerrainReorderChunks();
+                if (c != null)
+                {
+                    Reorder(c);
+                    _trailingTerrain = c;
+                }
+                else
+                {
+                    Reorder(_trailingTerrain);
+                }
             }
             else
             {
-                Reorder(_trailingTerrain);
+                generateTerrains(true);
             }
-            Debug.Log("Reordering");
         }
         return;
 	}
+
+    bool doOnce = false;
+
+    private void AdjustPostions()
+    {
+        if (!doOnce)
+        {
+            float t = 0;
+            if ((t = Vector3.Distance(this.transform.position, frontCube.transform.position)) > Twidth)
+            {
+                frontCube.transform.Translate(new Vector3(0, 0, -t), transform);
+                backCube.transform.Translate(new Vector3(0, 0, +t), transform);
+                doOnce = true;
+            }
+        }
+    }
 
     bool ReorderReqd()
     {
         var cube = frontCube;
         bool reqd = false;
+        //if(this.transform.position.y < terrains.First().terrainChunk.First().transform.position.y)
+        //    return false;
         if (terrains.Count == 0)
         {
-            Debug.Log("No Terrains");
+           // Debug.Log("No Terrains");
             return reqd;
         }
         foreach (terrainChunks tChunk in terrains)
@@ -125,7 +219,7 @@ public class move3X3_2 : MonoBehaviour {
                 }
             }
         }
-        return !reqd;
+        return reqd;
     }
 
     void Reorder(terrainChunks c)
@@ -210,11 +304,13 @@ public class move3X3_2 : MonoBehaviour {
 
     public Texture2D texGrass = null;
     public Texture2D texDirt = null;
+    public Texture2D texWater = null;
     float perlinFrequency = 1;
     float perlinAmplitude = 0.5f;
     int perlinOctaves = 8;
     float scale = 0.01f; // scale the indices so we end up with a reasonable heighmap based on them
 
+    SplatPrototype[] test = new SplatPrototype[3];
 
     void PerlinGenerate3X3()
     {
@@ -224,7 +320,7 @@ public class move3X3_2 : MonoBehaviour {
     Vector3 size = new Vector3(Twidth, Theight, Tlength); // middle number is terrain height
     GameObject[,] terrain = new GameObject[CHUNKS, CHUNKS];
 
-    System.Random rand = new System.Random(42);
+    System.Random rand = new System.Random(new System.Random().Next(0, 2000));
     TerrainData[] tData = new TerrainData[CHUNKS * CHUNKS];     
     float[][,] heightMap = new float[CHUNKS * CHUNKS][,];
 
@@ -234,7 +330,7 @@ public class move3X3_2 : MonoBehaviour {
     float xOffset = (float)rand.NextDouble();
     float yOffset = (float)rand.NextDouble();
     // scale
-    const int ALPHA_TILE_SIZE = 2;
+    const int ALPHA_TILE_SIZE = 16;
          for (int row = 0; row < CHUNKS; row++)
         {
             for (int col = 0; col < CHUNKS; col++)
@@ -254,9 +350,9 @@ public class move3X3_2 : MonoBehaviour {
 
         int x = -(CHUNKS / 2);
         int y = -(CHUNKS / 2);
-        for (int i = 0; i < CHUNKS; i++)
+        for ( int i = 0; i < CHUNKS; i++)
         {
-            for (int j = 0; j < CHUNKS; j++)
+            for ( int j = 0; j < CHUNKS; j++)
             {
                 // where is the terrain piece located?
                 //whereIsTerrain[i, j] = new Vector3(x * (width - 1), 0, y * (length - 1));
@@ -269,7 +365,7 @@ public class move3X3_2 : MonoBehaviour {
                 {
                     for (int k = 0; k < Tlength; k++)
                     {
-                        heightMap[i * CHUNKS + j][0, k] = heightMap[(i - 1) * CHUNKS + j][Tlength - 1, k];
+                        heightMap[i * CHUNKS + j][0, k] = heightMap[(i - 1) * CHUNKS + j][Tlength - 1, k];                       
                     }
                 }
 
@@ -277,23 +373,26 @@ public class move3X3_2 : MonoBehaviour {
                 {
                     for (int k = 0; k < Tlength; k++)
                     {
-                        heightMap[i * CHUNKS + j][k, 0] = heightMap[i * CHUNKS + (j - 1)][k, Tlength - 1];
+                        heightMap[i * CHUNKS + j][k, 0] = heightMap[i * CHUNKS + (j - 1)][k, Tlength - 1];                        
                     }
                 }
+
+             
             }
             y = -(CHUNKS / 2);
             x++;
         }
-        SplatPrototype[] test = new SplatPrototype[2];
-        test[0] = new SplatPrototype();
-        test[0].texture = texDirt;
-        test[0].tileOffset = new Vector2(0, 0);
-        test[0].tileSize = new Vector2(Twidth, Tlength);
 
-        test[1] = new SplatPrototype();
-        test[1].texture = texGrass;
-        test[1].tileOffset = new Vector2(0, 0);
-        test[1].tileSize = new Vector2(Twidth, Tlength);
+        for (int i = 0; i < Twidth; i++)
+            for (int j = 0; j < Tlength;j++)
+        {
+            if (new System.Random().Next(0, 100) > 98)
+            {
+             //   var tPos = new Vector3(rand.Next((int)_terrainPosition.x, (int)_terrainPosition.x + Twidth), heightMap[0][i, j], rand.Next((int)_terrainPosition.z, (int)_terrainPosition.z + Tlength));
+             //   AddTrees(tPos);
+            }
+        }
+        
 
         // NOTE: some of the indices for things are backwards because I had to figure
         // out the order to place them in for seamless terrain after I'd already written
@@ -304,8 +403,8 @@ public class move3X3_2 : MonoBehaviour {
             for (int col = 0; col < CHUNKS; col++)
             {
                 tData[col * CHUNKS + row].heightmapResolution = Twidth;
-                tData[col * CHUNKS + row].alphamapResolution = ALPHA_TILE_SIZE * ALPHA_TILE_SIZE;
-                tData[col * CHUNKS + row].SetDetailResolution(Twidth - 1, 16);
+                tData[col * CHUNKS + row].alphamapResolution = ALPHA_TILE_SIZE;
+                tData[col * CHUNKS + row].SetDetailResolution(Twidth - 1, 64);
                 tData[col * CHUNKS + row].baseMapResolution = Twidth - 1 + 1;
                 tData[col * CHUNKS + row].SetHeights(0, 0, heightMap[col * CHUNKS + row]);
                 tData[col * CHUNKS + row].size = new Vector3(Twidth - 1, Theight, Tlength - 1);
@@ -317,15 +416,25 @@ public class move3X3_2 : MonoBehaviour {
                     for (int j = 0; j < ALPHA_TILE_SIZE; j++)
                     {
 
-                        if (heightMap[col * CHUNKS + row][i * Twidth / ALPHA_TILE_SIZE, j * Tlength / ALPHA_TILE_SIZE] > 0.5)
+                        if (heightMap[col * CHUNKS + row][i * Twidth / ALPHA_TILE_SIZE, j * Tlength / ALPHA_TILE_SIZE] > 0.6)
                         {
                             singlePoint[0, 0, 0] = 0f;
                             singlePoint[0, 0, 1] = 1f;
+                            singlePoint[0, 0, 2] = 0f;
                         }
                         else
                         {
+                            if (heightMap[col * CHUNKS + row][i * Twidth / ALPHA_TILE_SIZE, j * Tlength / ALPHA_TILE_SIZE] < 0.56)
+                            {
+                                singlePoint[0, 0, 0] = 0f;
+                                singlePoint[0, 0, 1] = 0f;
+                                singlePoint[0, 0, 2] = 1f;
+                                //Debug.Log("WATER");
+                            }
                             singlePoint[0, 0, 0] = 1f;
                             singlePoint[0, 0, 1] = 0f;
+                            singlePoint[0, 0, 2] = 0f;
+
                         }
 
                         // this is amazingly stupid, but alpha is only able to be at every point
@@ -333,11 +442,28 @@ public class move3X3_2 : MonoBehaviour {
                         tData[col * CHUNKS + row].SetAlphamaps(j, i, singlePoint);
                     }
                 }
-
+                tData[col * CHUNKS + row].RefreshPrototypes();
                 terrain[row, col] = Terrain.CreateTerrainGameObject(tData[col * CHUNKS + row]);
                 terrain[row, col].transform.position = _terrainPosition;
                 terrain[row, col].gameObject.tag = "Terrain";
                 terrain[row, col].gameObject.isStatic = false;
+				terrainsRendered.Add(terrain[row, col].GetComponent<Terrain>());
+                Debug.Log("Terrain iNit");
+                //terrain[row, col].renderer.material = new Material(Shader.Find("TerrainShader"));
+                 
+                //for (int i = 0; i < 10; i++)
+                //{
+                //    TreeInstance ti = new TreeInstance();
+                //    ti.prototypeIndex = 0;
+                //    ti.heightScale = 1.0f;
+                //    ti.widthScale = 1.0f;
+                //    ti.color = Color.white;
+                //    Vector3 v = new Vector3(i / 100.0f, 0.0f, i / 100.0f);
+                //    ti.position = v;
+                //    Debug.Log(v);
+                //    Debug.Log(ti);
+                //    terrain[row, col].GetComponent<Terrain>().AddTreeInstance(ti);
+                //}
             }
         }
     }
