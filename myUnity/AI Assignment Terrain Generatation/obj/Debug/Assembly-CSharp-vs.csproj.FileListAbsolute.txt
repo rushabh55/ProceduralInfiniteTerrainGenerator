@@ -1,0 +1,13 @@
+D:\AI FINAL1\obj\Debug\Assembly-CSharp-vs.csprojResolveAssemblyReference.cache
+D:\AI FINAL1\Temp\bin\Debug\Assembly-CSharp.dll
+D:\AI FINAL1\Temp\bin\Debug\Assembly-CSharp.pdb
+D:\AI FINAL1\Temp\bin\Debug\Assembly-UnityScript-firstpass.dll
+D:\AI FINAL1\Temp\bin\Debug\UnityEditor.dll
+D:\AI FINAL1\Temp\bin\Debug\UnityEngine.dll
+D:\AI FINAL1\Temp\bin\Debug\Mono.Cecil.dll
+D:\AI FINAL1\Temp\bin\Debug\nunit.framework.dll
+D:\AI FINAL1\Temp\bin\Debug\Unity.DataContract.dll
+D:\AI FINAL1\Temp\bin\Debug\ICSharpCode.NRefactory.dll
+D:\AI FINAL1\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb
+D:\AI FINAL1\obj\Debug\Assembly-CSharp.dll
+D:\AI FINAL1\obj\Debug\Assembly-CSharp.pdb

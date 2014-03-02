@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 4c85abd0a4d974473b97e81d10a3a6bc
+guid: 103a0aa167bedf44e83ca708c1f3a5fc
 ModelImporter:
   serializedVersion: 16
   fileIDToRecycleName:
@@ -8,13 +8,13 @@ ModelImporter:
     2300000: //RootNode
     3300000: //RootNode
     4300000: polySurface1
-    11100000: //RootNode
+    9500000: //RootNode
   materials:
     importMaterials: 1
-    materialName: 3
+    materialName: 0
     materialSearch: 1
   animations:
-    legacyGenerateAnimations: 0
+    legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
     animationCompression: 1
@@ -24,17 +24,17 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     clipAnimations: []
-    isReadable: 1
+    isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: .100000001
     meshCompression: 3
     addColliders: 0
-    importBlendShapes: 1
-    swapUVChannels: 0
-    generateSecondaryUV: 0
+    importBlendShapes: 0
+    swapUVChannels: 1
+    generateSecondaryUV: 1
     useFileUnits: 1
-    optimizeMeshForGPU: 1
+    optimizeMeshForGPU: 0
     weldVertices: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
@@ -59,6 +59,6 @@ ModelImporter:
     feetSpacing: 0
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 1
+  animationType: 2
   additionalBone: 0
   userData: 
