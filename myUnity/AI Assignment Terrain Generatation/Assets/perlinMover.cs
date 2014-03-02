@@ -359,7 +359,17 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row].SetHeights(0, 0, heightMap[col * CHUNKS + row]);
                 tData[col * CHUNKS + row].size = new Vector3(width - 1, height, length - 1);
                 tData[col * CHUNKS + row].splatPrototypes = test;
-                
+
+                DetailPrototype[] dProtos = new DetailPrototype[1];
+                dProtos[0] = new DetailPrototype();
+                dProtos[0].prototype = water;
+                dProtos[0].healthyColor = Color.white;
+                dProtos[0].dryColor = Color.black;
+                dProtos[0].noiseSpread = 1f;
+                dProtos[0].usePrototypeMesh = true;
+                tData[col * CHUNKS + row].detailPrototypes = dProtos;
+
+
                 TreePrototype[] _treeprotos = new TreePrototype[1];
                 _treeprotos[0] = new TreePrototype();
                 _treeprotos[0].prefab = _treeInstance;
@@ -453,8 +463,7 @@ public class perlinMover : MonoBehaviour
     public int noOfTreesPerTerrain = 0;
     #endregion
 
-
-	#region ADDING TREES
+	#region ADDING TREES & WATER
 	void GenerateTrees()
 	{
 		foreach (var terr in terrain)
@@ -474,11 +483,18 @@ public class perlinMover : MonoBehaviour
 				ti.widthScale = (float)rand.NextDouble();
 				terr.GetComponent<Terrain>().AddTreeInstance(ti);
 			}
+            else
+                if(ht < h1)
+            {
+                Debug.Log("WATER");
+                int [,] details = new int[1,1];
+                details[0, 0] = 1;
+                t.terrainData.SetDetailLayer((int)r.x, (int)r.y, 1, details);
+               // GameObject.Instantiate(water, new Vector3(r.x, 0, r.y), Quaternion.identity); 
+            }
 		}
 	}
 	#endregion
-
-
 
 	#region Perlin
 	const int PERM_SIZE = 256;
@@ -840,4 +856,6 @@ public class perlinMover : MonoBehaviour
     }
 
     #endregion
+
+    public GameObject water;
 }
