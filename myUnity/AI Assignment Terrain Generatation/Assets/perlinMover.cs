@@ -4,7 +4,7 @@ using System;
 
 public class perlinMover : MonoBehaviour
 {
-
+    #region Declarations
     public Material[] skyboxMaterials = null;
     public static int width;
     public static int length;
@@ -35,7 +35,7 @@ public class perlinMover : MonoBehaviour
     // scale
     private float scale = 0.01f; // scale the indices so we end up with a reasonable heighmap based on them
     private const int ALPHA_TILE_SIZE = 64;
-
+    private bool middleMove = true;
 
     SplatPrototype[] test = new SplatPrototype[7];
     //0 GoodDIrt
@@ -53,15 +53,16 @@ public class perlinMover : MonoBehaviour
     public float voronoiFeatures;
     public float voronoiScale { get; set; }
     public bool moved { get; set; }
+    #endregion
 
-	#region start and Update
+    #region start and Update
     // Use this for initialization
     void Start()
     {
         width = (int)size.x;
         length = (int)size.z;
         height = (int)size.y;
-        Debug.Log(width);
+//        Debug.Log(width);
         RenderSettings.skybox = skyboxMaterials[rand.Next(0, skyboxMaterials.Length)];
 
         test[0] = new SplatPrototype();
@@ -90,17 +91,17 @@ public class perlinMover : MonoBehaviour
         test[4].tileSize = new Vector2(width, length);
 
         test[5] = new SplatPrototype();
-        test[5].texture = (Texture2D)Resources.Load("Snow/2", typeof(Texture2D));
+        test[5].texture = (Texture2D)Resources.Load("Snow/3", typeof(Texture2D));
         test[5].tileOffset = new Vector2(0, 0);
         test[5].tileSize = new Vector2(width, length);
 
         test[6] = new SplatPrototype();
-        test[6].texture = (Texture2D)Resources.Load("Snow/3", typeof(Texture2D));
+        test[6].texture = (Texture2D)Resources.Load("Snow/2", typeof(Texture2D));
         test[6].tileOffset = new Vector2(0, 0);
         test[6].tileSize = new Vector2(width, length);
         generate();
-        this.transform.position = new Vector3(terrain[CHUNKS / 2, CHUNKS / 2].transform.position.x, 0, terrain[CHUNKS / 2, CHUNKS / 2].transform.position.z) + new Vector3(width / 2, 0, length / 2);
-
+        this.transform.position = new Vector3(terrain[CHUNKS / 2, CHUNKS / 2].transform.position.x, height, terrain[CHUNKS / 2, CHUNKS / 2].transform.position.z) + new Vector3(width / 2, 0, length / 2);
+        GenerateTrees();
     }
 
     // Update is called once per frame
@@ -134,6 +135,11 @@ public class perlinMover : MonoBehaviour
 
         if (moved)
         {
+            if (middleMove)
+            {
+                middleMove = false;
+                CalcNoise(terrain[CHUNKS / 2,CHUNKS / 2].GetComponent<Terrain>());
+            }
             //  foreach(var t in terrain)
             moved = !moved;
             _prevPos = this.transform.position;
@@ -157,7 +163,7 @@ public class perlinMover : MonoBehaviour
             Vector2 fCubePos = new Vector2(frontCube.transform.position.x, frontCube.transform.position.z);
 			var td = t.GetComponent<Terrain>();
             Rect r = new Rect(t.transform.position.x, t.transform.position.z, td.terrainData.size.x, td.terrainData.size.z);
-            if (r.Contains(fCubePos))
+            if (!r.Contains(frontCube.transform.position))
             {
                 flag = true;
             }
@@ -203,15 +209,27 @@ public class perlinMover : MonoBehaviour
     {
         if (terrain == null)
             return;
+
         GameObject[,] pos = new GameObject[CHUNKS, CHUNKS];
+
         pos = terrain;
         for (int i = 0; i < CHUNKS; i++)
         {
-            //terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width, 0, 0);
             pos[i, 0].transform.position = terrain[i, 1].transform.position;
             pos[i, 1].transform.position = terrain[i, 2].transform.position;
             pos[i, 2].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 4);
         }
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            CalcNoise(pos[i, 2].GetComponent<Terrain>());
+        }
+
+        var main = pos[0, 2].GetComponent<Terrain>();
+        pos[0, 2].GetComponent<Terrain>().SetNeighbors(null, null, pos[1, 2].GetComponent<Terrain>(), pos[0, 1].GetComponent<Terrain>());
+        pos[1, 2].GetComponent<Terrain>().SetNeighbors(pos[0, 2].GetComponent<Terrain>(), null, pos[2, 2].GetComponent<Terrain>(), pos[1, 1].GetComponent<Terrain>());
+        pos[2, 2].GetComponent<Terrain>().SetNeighbors(pos[1, 2].GetComponent<Terrain>(), null, null, pos[2, 1].GetComponent<Terrain>());
+        m_zOff += length;
         terrain = pos;
     }
 
@@ -227,6 +245,11 @@ public class perlinMover : MonoBehaviour
             pos[i, 2].transform.position = terrain[i, 1].transform.position;
             pos[i, 1].transform.position = terrain[i, 0].transform.position;
             pos[i, 0].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length - 4);
+        }
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            CalcNoise(pos[i, 0].GetComponent<Terrain>());
         }
         terrain = pos;
     }
@@ -244,13 +267,10 @@ public class perlinMover : MonoBehaviour
             pos[1, i].transform.position = terrain[0, i].transform.position;
             pos[0, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 4, 0, 0);
         }
-
         for (int i = 0; i < CHUNKS; i++)
         {
-            //RecalculateNode(pos[0, i].GetComponent<Terrain>(), false);
-            Debug.Log("Neg X");
+            CalcNoise(pos[0, i].GetComponent<Terrain>());
         }
-
         terrain = pos;
     }
 
@@ -268,13 +288,17 @@ public class perlinMover : MonoBehaviour
             pos[0, i].transform.position = terrain[1, i].transform.position;
             pos[1, i].transform.position = terrain[2, i].transform.position;
             pos[2, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 4, 0, 0);
+        } 
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            CalcNoise(pos[2, i].GetComponent<Terrain>());
         }
         terrain = pos;
     }
     #endregion
 
     #region Char Control
-    public int moveSpeed;
+    public float moveSpeed;
     public void Move()
     {
         try
@@ -317,7 +341,7 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS * CHUNKS; i++)
         {
-            heightMap[i] = generateVoronoi(heightMap[i], new Vector2(width - 1, length - 1));
+            heightMap[i] = generateVoronoi(heightMap[i], new Vector2(width - 1, length - 1), false);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -325,7 +349,9 @@ public class perlinMover : MonoBehaviour
             for (int j = 0; j < CHUNKS; j++)
             {
                 whereIsTerrain[i, j] = new Vector3(x * (width - 1), 0, y * (length - 1));
-                heightMap[i * CHUNKS + j] = k_perlin(heightMap[i * CHUNKS + j], width, length, 0.5f, 0, x * (width - 1), y * (length - 1));
+                heightMap[i * CHUNKS + j] = k_perlin(heightMap[i * CHUNKS + j], width, length, 0.5f, 0, x * (width - 1), y * (length - 1), false);
+                m_xOff += width;
+                m_zOff += length;
                 y++;
                 if (i != 0)
                 {
@@ -360,13 +386,30 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row].size = new Vector3(width - 1, height, length - 1);
                 tData[col * CHUNKS + row].splatPrototypes = test;
 
-                DetailPrototype[] dProtos = new DetailPrototype[1];
+                DetailPrototype[] dProtos = new DetailPrototype[2];
                 dProtos[0] = new DetailPrototype();
                 dProtos[0].prototype = water;
                 dProtos[0].healthyColor = Color.white;
                 dProtos[0].dryColor = Color.black;
                 dProtos[0].noiseSpread = 1f;
+                dProtos[0].maxHeight = 1;
+                dProtos[0].maxWidth = 1;
+                dProtos[0].renderMode = DetailRenderMode.VertexLit;
                 dProtos[0].usePrototypeMesh = true;
+                
+                dProtos[1] = new DetailPrototype();
+                dProtos[1].prototypeTexture = grass;
+                dProtos[1].healthyColor = Color.white;
+                dProtos[1].dryColor = Color.black;
+                dProtos[1].renderMode = DetailRenderMode.Grass;
+                dProtos[1].noiseSpread = 1f;
+                dProtos[1].maxWidth = 1;
+                dProtos[1].maxHeight = 1;
+                dProtos[1].minHeight = 0.5f;
+                dProtos[1].minWidth = 0.5f;
+                dProtos[1].usePrototypeMesh = false;
+                dProtos[1].bendFactor = 1f;
+
                 tData[col * CHUNKS + row].detailPrototypes = dProtos;
 
 
@@ -453,47 +496,69 @@ public class perlinMover : MonoBehaviour
                 }
                 terrain[row, col] = Terrain.CreateTerrainGameObject(tData[col * CHUNKS + row]);
                 terrain[row, col].transform.position = whereIsTerrain[row, col] - new Vector3(2.87f * row, 0, 2.87f * col);
-                terrain[row, col].name = (++terrno).ToString();
-                var noOfTreesPerTerrain1 = noOfTreesPerTerrain + rand.Next(0, 20);
-                
+                terrain[row, col].name = (++terrno).ToString();                
             }
         }
+//        Debug.Log(averageHeight);
+        averageHeight /= (height * width);
+        averageHeight /= CHUNKS;
+       // Debug.Log(averageHeight);
     }
     int terrno = 0;
     public int noOfTreesPerTerrain = 0;
     #endregion
 
-	#region ADDING TREES & WATER
+	#region ADDING TREES
+    public GameObject water;
+    public Texture2D grass;
 	void GenerateTrees()
 	{
-		foreach (var terr in terrain)
-		{
-			var t = terr.GetComponent<Terrain>();
-			Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble());
-			var ht = t.terrainData.GetHeight((int)r.x, (int)r.y);
-			var h1 = 0.1 * height;
-			var h2 = 0.3 * height;
-			if (ht > h1 && ht < h2)
-			{
-				TreeInstance ti = new TreeInstance();
-				ti.position = new Vector3(r.x, 0, r.y);
-				ti.lightmapColor = Color.white;
-				ti.color = Color.white;
-				ti.heightScale = (float)rand.NextDouble();
-				ti.widthScale = (float)rand.NextDouble();
-				terr.GetComponent<Terrain>().AddTreeInstance(ti);
-			}
-            else
-                if(ht < h1)
+        foreach (var terr in terrain)
+        {
+            var t = terr.GetComponent<Terrain>();
+
+            var totalTrees = noOfTreesPerTerrain;
+            totalTrees += rand.Next(0, 30);
+            for (int i = 0; i < totalTrees; i++)
             {
-                Debug.Log("WATER");
-                int [,] details = new int[1,1];
-                details[0, 0] = 1;
-                t.terrainData.SetDetailLayer((int)r.x, (int)r.y, 1, details);
-               // GameObject.Instantiate(water, new Vector3(r.x, 0, r.y), Quaternion.identity); 
+                Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble());
+                var ht = t.terrainData.GetHeight((int)r.x, (int)r.y);
+                var h1 = 0.1 * height;
+                var h2 = 0.4 * height;
+//                Debug.Log(r);
+//                Debug.Log(ht);
+                if (ht > h1 && ht < h2)
+                {
+                    TreeInstance ti = new TreeInstance();
+                    ti.position = new Vector3(r.x, 0, r.y);
+                    ti.lightmapColor = Color.white;
+                    ti.color = Color.white;
+                    ti.heightScale = 1 + (float)rand.NextDouble();
+                    ti.widthScale = 1 + (float)rand.NextDouble();
+                    terr.GetComponent<Terrain>().AddTreeInstance(ti);
+                    Debug.Log(r);
+                }
+                else
+                {
+                    //i--;
+                }
+                terr.GetComponent<Terrain>().Flush();
+                terr.GetComponent<Terrain>().terrainData.RefreshPrototypes();
             }
-		}
+        }
 	}
+
+    void GenerateTreesAtPoint(int x, int y, Terrain t, params object[] otherParams)
+    {
+        var r = new Vector2(x, y);
+        TreeInstance ti = new TreeInstance();
+        ti.position = new Vector3(r.x, 0, r.y);
+        ti.lightmapColor = Color.white;
+        ti.color = Color.white;
+        ti.heightScale = (float)rand.NextDouble();
+        ti.widthScale = (float)rand.NextDouble();
+        t.AddTreeInstance(ti);
+    }
 	#endregion
 
 	#region Perlin
@@ -681,7 +746,7 @@ public class perlinMover : MonoBehaviour
 
     // fill a 2D array with perlin noise which represents a heightmap
     private float[,] k_perlin(float[,] pos, int width, int height,
-            float gain, float zOffset, float positionX, float positionZ)
+            float gain, float zOffset, float positionX, float positionZ, bool regen)
     {
 
         // since we want the noise to be consistent based on the indices
@@ -692,18 +757,23 @@ public class perlinMover : MonoBehaviour
             {
                 //Debug.Log(i);
                 //Debug.Log(j);
-                pos[i, j] += height2d((positionX + i) * scale + xOffset, (positionZ + j) * scale + yOffset, perlinOctaves, 2.0f, gain) + zOffset;
+                var w = height2d((positionX + i) * scale + xOffset, (positionZ + j) * scale + yOffset, perlinOctaves, 2.0f, gain) + zOffset;
+                if (regen)
+                    pos[i, j] = w;
+                else
+                    pos[i, j] += w;
             }
         }
 
 
-        pos = normalizePerlin(pos, new Vector2(width, height));
+        pos = normalizePerlin(ref pos, new Vector2(width, height));
 
         return pos;
     }
 
+    decimal averageHeight = 0;
     // Normalize all data
-    private float[,] normalizePerlin(float[,] heightMap, Vector2 arraySize)
+    private float[,] normalizePerlin(ref float[,] heightMap, Vector2 arraySize)
     {
         int Tx = (int)arraySize.x;
         int Ty = (int)arraySize.y;
@@ -721,7 +791,8 @@ public class perlinMover : MonoBehaviour
             for (Mx = 0; Mx < Tx; Mx++)
             {
                 float normalisedHeight = ((heightMap[Mx, My] - lowestPoint) / heightRange) * normalisedHeightRange;
-                heightMap[Mx, My] = normaliseMin + (float)normalisedHeight - 0.05f;
+                heightMap[Mx, My] = normaliseMin + (float)normalisedHeight;
+                averageHeight += (double)heightMap[Mx, My] == double.NaN ? 0 : (decimal)heightMap[Mx, My];
             }
         }
 
@@ -761,14 +832,17 @@ public class perlinMover : MonoBehaviour
     //		voronoiPresets.Add(new voronoiPresetData("Scattered Peaks", VoronoiType.Linear, 16, 8, 0.5f, 1.0f));
     //	voronoiPresets.Add(new voronoiPresetData("Rolling Hills", VoronoiType.Sine, 8, 8, 0.0f, 1.0f));
     //	voronoiPresets.Add(new voronoiPresetData("Jagged Mountains", VoronoiType.Linear, 32, 32, 0.5f, 1.0f));
-    private float[,] generateVoronoi(float[,] heightMap, Vector2 arraySize)
+    private float[,] generateVoronoi(float[,] heightMap, Vector2 arraySize, bool regenFlag)
     {
         int Tx = (int)arraySize.x;
         int Ty = (int)arraySize.y;
         // Create Voronoi set...
         ArrayList voronoiSet = new ArrayList();
         int i;
-        for (i = 0; i < voronoiCells; i++)
+        int inc = 1;
+        if (regenFlag)
+            inc++;
+        for (i = 0; i < voronoiCells; i+=inc)
         {
             Peak newPeak = new Peak();
             int xCoord = (int)Mathf.Floor(UnityEngine.Random.value * Tx);
@@ -785,21 +859,25 @@ public class perlinMover : MonoBehaviour
         int Mx;
         int My;
         float highestScore = 0.0f;
-        for (My = 0; My < Ty; My++)
+        for (My = 0; My < Ty; My+=inc)
         {
-            for (Mx = 0; Mx < Tx; Mx++)
+            for (Mx = 0; Mx < Tx; Mx+=inc)
             {
                 ArrayList peakDistances = new ArrayList();
-                for (i = 0; i < voronoiCells; i++)
+                try
                 {
-                    Peak peakI = (Peak)voronoiSet[i];
-                    Vector2 peakPoint = peakI.peakPoint;
-                    float distanceToPeak = Vector2.Distance(peakPoint, new Vector2(Mx, My));
-                    PeakDistance newPeakDistance = new PeakDistance();
-                    newPeakDistance.id = i;
-                    newPeakDistance.dist = distanceToPeak;
-                    peakDistances.Add(newPeakDistance);
+                    for (i = 0; i < voronoiCells; i += inc)
+                    {
+                        Peak peakI = (Peak)voronoiSet[i];
+                        Vector2 peakPoint = peakI.peakPoint;
+                        float distanceToPeak = Vector2.Distance(peakPoint, new Vector2(Mx, My));
+                        PeakDistance newPeakDistance = new PeakDistance();
+                        newPeakDistance.id = i;
+                        newPeakDistance.dist = distanceToPeak;
+                        peakDistances.Add(newPeakDistance);
+                    }
                 }
+                catch (Exception) { }
                 peakDistances.Sort();
                 PeakDistance peakDistOne = (PeakDistance)peakDistances[0];
                 PeakDistance peakDistTwo = (PeakDistance)peakDistances[1];
@@ -857,5 +935,88 @@ public class perlinMover : MonoBehaviour
 
     #endregion
 
-    public GameObject water;
+    #region Recalculate Noise
+    int m_xOff, m_zOff;
+    void CalcNoise(Terrain t)
+    {
+        voronoiCells = 8;
+        var heightMap = t.terrainData.GetHeights(0, 0, (int)width, (int)length);     
+        heightMap = k_perlin(heightMap, width, length, 0.95f, 0, 0, 0, true);
+        xOffset += width;
+        NewTextures(t, heightMap, width, height);
+        t.terrainData.RefreshPrototypes();
+        t.terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    private void NewTextures(Terrain t, float[,] heightMap, int width, int height)
+    {
+        for (int i = 0; i < width - 1; i++)
+        {
+            for (int j = 0; j < width - 1; j++)
+            {
+                #region RE - TEXTURING
+                var CurrentHeight = heightMap[i, j];
+                float[, ,] singlePoint = new float[1,1,7];
+                var blendFactor = (float)rand.NextDouble();
+                if (CurrentHeight < 0.2f && CurrentHeight > 0.0f)
+                {
+                    singlePoint[0, 0, 0] = blendFactor / 2f;
+                    singlePoint[0, 0, 1] = blendFactor / 2f;
+                    singlePoint[0, 0, 2] = 1f - blendFactor;
+                    singlePoint[0, 0, 3] = 0f;
+                    singlePoint[0, 0, 4] = 0f;
+                    singlePoint[0, 0, 5] = 0f;
+                    singlePoint[0, 0, 6] = 0f;
+                }
+                else
+                    if (CurrentHeight < 0.3)
+                    {
+                        singlePoint[0, 0, 0] = 0f;
+                        singlePoint[0, 0, 1] = 0f;
+                        singlePoint[0, 0, 2] = 1f;
+                        singlePoint[0, 0, 3] = 0f;
+                        singlePoint[0, 0, 4] = 0f;
+                        singlePoint[0, 0, 5] = 0f;
+                        singlePoint[0, 0, 6] = 0f;
+                    //    GenerateTreesAtPoint(i, j, t, null);
+                    }
+                    else
+                        if (CurrentHeight < 0.6)
+                        {
+                            singlePoint[0, 0, 0] = 0f;
+                            singlePoint[0, 0, 1] = blendFactor;
+                            singlePoint[0, 0, 2] = 0f;
+                            singlePoint[0, 0, 3] = 1f - blendFactor;
+                            singlePoint[0, 0, 4] = 0f;
+                            singlePoint[0, 0, 5] = 0f;
+                            singlePoint[0, 0, 6] = 0f;
+                        }
+                        else
+                            if (CurrentHeight < 0.8)
+                            {
+                                singlePoint[0, 0, 0] = 0f;
+                                singlePoint[0, 0, 1] = 0f;
+                                singlePoint[0, 0, 2] = 0f;
+                                singlePoint[0, 0, 3] = 0.1f + blendFactor;
+                                singlePoint[0, 0, 4] = 1f;
+                                singlePoint[0, 0, 5] = 0f;
+                                singlePoint[0, 0, 6] = 0f;
+                            }
+                            else
+                            {
+                                singlePoint[0, 0, 0] = 0f;
+                                singlePoint[0, 0, 1] = 0f;
+                                singlePoint[0, 0, 2] = 0f;
+                                singlePoint[0, 0, 3] = 0f;
+                                singlePoint[0, 0, 4] = 0f;
+                                singlePoint[0, 0, 5] = 0f;
+                                singlePoint[0, 0, 6] = 1f;
+                            }
+                t.terrainData.SetAlphamaps(j, i, singlePoint);
+                #endregion
+            }
+        }
+    }
+    #endregion
+
 }
