@@ -47,7 +47,7 @@ public class perlinMover : MonoBehaviour
     //5 snow2
     //6 snow3
 
-    public GameObject _treeInstance = null;
+    public GameObject[] _treeInstance = null;
 
     public TreePrototype[] tree = null;    
     public int voronoiCells = 15;
@@ -154,6 +154,18 @@ public class perlinMover : MonoBehaviour
             terrain9.terrainData.RefreshPrototypes();
     }
 
+    void NormalizeBoundaries()
+    {
+        var ht1 = new float[1, 64];
+        var ht2 = new float[64, 1];
+
+        foreach (var t in terrain)
+        {
+            t.GetComponent<Terrain>().terrainData.SetHeights(0, 63, ht1);
+            t.GetComponent<Terrain>().terrainData.SetHeights(63, 0, ht2);
+        }
+    }
+
     void LateUpdate()
     {
       //  NormalizeEverything();
@@ -199,6 +211,7 @@ public class perlinMover : MonoBehaviour
         {
             //RescaleNormalize();
             NormalizeEverything();
+            NormalizeBoundaries();
             averageHeight *= 0.002M;
             moved = !moved;
             _prevPos = this.transform.position;
@@ -517,11 +530,14 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row].detailPrototypes = dProtos;
 
 
-                TreePrototype[] _treeprotos = new TreePrototype[1];
-                _treeprotos[0] = new TreePrototype();
-                _treeprotos[0].prefab = _treeInstance;
-                _treeprotos[0].bendFactor = 1f;
-                _treeprotos[0].prefab.renderer.material.color = Color.white;
+                TreePrototype[] _treeprotos = new TreePrototype[_treeInstance.Length];
+                for (int i = 0; i < _treeInstance.Length; i++)
+                {
+                    _treeprotos[i] = new TreePrototype();
+                    _treeprotos[i].prefab = _treeInstance[i];
+                    _treeprotos[i].bendFactor = 1f;
+                    _treeprotos[i].prefab.renderer.material.color = Color.white;
+                }
 
                 tData[col * CHUNKS + row].treePrototypes = _treeprotos;
 
@@ -617,32 +633,46 @@ public class perlinMover : MonoBehaviour
     public Texture2D grass;
 	void GenerateTrees()
 	{
-        
+        int treesAdd = 0;
         foreach (var terr in terrain)
         {
             var t = terr.GetComponent<Terrain>();
 
+            Debug.Log("Terrain Name: " + terr.name + "Added: " + treesAdd);
+            treesAdd = 0;
             var totalTrees = noOfTreesPerTerrain;
             totalTrees += rand.Next(0, 30);
             for (int i = 0; i < totalTrees; i++)
             {
-                Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble());
+                Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble() );
+                var treeHt = (float)SimplexNoise.noise(r.x * rand.Next(0, width), r.y * rand.Next(0, length));
+                treeHt = treeHt < 0 ? treeHt * -1 : treeHt;
                 var ht = t.terrainData.GetHeight((int)r.x, (int)r.y);
                 var h1 = 0.1 * height;
                 var h2 = 0.4 * height;
-                if (ht > h1 && ht < h2)
+               // if (ht > h1 && ht < h2)
                 {
+                    //Debug.Log(2.5f * treeHt);
                     TreeInstance ti = new TreeInstance();
+                    ti.prototypeIndex = rand.Next(0, _treeInstance.Length);
                     ti.position = new Vector3(r.x, 0, r.y);
                     ti.lightmapColor = Color.white;
                     ti.color = Color.white;
                     ti.heightScale = 2.5f + (float)rand.NextDouble();
-                    ti.widthScale = 2.5f + (float)rand.NextDouble();
+                    ti.widthScale = 4.5f * treeHt;
                     terr.GetComponent<Terrain>().AddTreeInstance(ti);
+                    
+                    treesAdd++;
                 }
-                terr.GetComponent<Terrain>().Flush();
-                terr.GetComponent<Terrain>().terrainData.RefreshPrototypes();
+                //else
+                {
+                   // i--;
+                }
+             
             }
+
+            terr.GetComponent<Terrain>().Flush();
+            terr.GetComponent<Terrain>().terrainData.RefreshPrototypes();
         }
 	}
 

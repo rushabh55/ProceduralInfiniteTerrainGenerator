@@ -1,10 +1,11 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\perlinMover.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\HUDFps.cs">
     <Files>
-      <File FileName="Assets\perlinMover.cs" Line="630" Column="1" />
+      <File FileName="Assets\perlinMover.cs" Line="629" Column="67" />
       <File FileName="Assets\VoroniBG.cs" Line="1" Column="1" />
       <File FileName="Assets\Mood.cs" Line="1" Column="1" />
+      <File FileName="Assets\HUDFps.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

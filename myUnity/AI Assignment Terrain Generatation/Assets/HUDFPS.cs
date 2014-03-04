@@ -58,7 +58,7 @@ public class HUDFPS : MonoBehaviour
             timeleft = updateInterval;
             accum = 0.0F;
             frames = 0;
-            Debug.Log(fps);
+           // Debug.Log(fps);
         }
     }
 }
