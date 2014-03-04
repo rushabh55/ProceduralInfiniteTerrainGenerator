@@ -60,6 +60,7 @@ public class perlinMover : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Application.targetFrameRate = 30;
         width = (int)size.x;
         length = (int)size.z;
         height = (int)size.y;
@@ -105,7 +106,7 @@ public class perlinMover : MonoBehaviour
         GenerateTrees();
         m_xOff = width * CHUNKS;
         m_zOff = length * CHUNKS;
-        RescaleNormalize();
+        //RescaleNormalize();
         NormalizeEverything();
     }
 
@@ -140,63 +141,26 @@ public class perlinMover : MonoBehaviour
             terrain6.Flush();
             terrain7.Flush();
             terrain8.Flush();
-            terrain9.Flush();       
+            terrain9.Flush();
+
+            terrain1.terrainData.RefreshPrototypes();
+            terrain2.terrainData.RefreshPrototypes();
+            terrain3.terrainData.RefreshPrototypes();
+            terrain4.terrainData.RefreshPrototypes();
+            terrain5.terrainData.RefreshPrototypes();
+            terrain6.terrainData.RefreshPrototypes();
+            terrain7.terrainData.RefreshPrototypes();
+            terrain8.terrainData.RefreshPrototypes();
+            terrain9.terrainData.RefreshPrototypes();
     }
 
-    void RescaleNormalize()
+    void LateUpdate()
     {
-        float[,] heights0 = new float[64, 1];
-        float[,] heights1 = new float[1,64];
-        averageHeight = 0;
-        Debug.Log(averageHeight + "Height");
-        for (int i = 0; i < 64; i++)
-        {
-            foreach (var terr in terrain)
-            {
-                heights0[i, 0] = terr.GetComponent<Terrain>().terrainData.GetHeight(0, i);
-                heights0[i, 0] += (float)averageHeight;         
-            }
-        }
-
-        for (int i = 0; i < 64; i++)
-        {
-            heights1[0, i] = (float)averageHeight;
-        }
-
-
-        foreach (var terr in terrain)
-        {
-            terr.GetComponent<Terrain>().terrainData.SetHeights(0, 1, heights0);
-            terr.GetComponent<Terrain>().terrainData.SetHeights(0, 1, heights1);
-        }
-
-       //int i = width / 2; 
-       // {
-       //     int j = length / 2;
-       //     {
-       //         foreach (var terr in terrain)
-       //         {
-       //             var t = terr.GetComponent<Terrain>();
-       //             var heights = new float[5, 5];
-       //             for (int y = 0; y < 5; y++)
-       //                 for (int x = 0; x < 5; x++)
-       //                 {
-       //                     heights[x, y] += (float)averageHeight;
-       //                 }
-       //             t.terrainData.SetHeights(i, j, heights);
-       //             t.terrainData.SetHeights(i, 0, heights);
-       //             t.terrainData.SetHeights(0, j, heights);
-       //             t.terrainData.SetHeights(0, 0, heights);
-       //             Debug.Log(averageHeight);
-       //         }
-       //     }
-       // }
+      //  NormalizeEverything();
     }
-    // Update is called once per frame
+
     void Update()
     {
-
-        //NormalizeEverything();
         this.Move();
         var TILE_SIZE = length;
         if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE > 1 && !moved)
@@ -233,11 +197,17 @@ public class perlinMover : MonoBehaviour
 
         if (moved)
         {
-            RescaleNormalize();
+            //RescaleNormalize();
             NormalizeEverything();
+            averageHeight *= 0.002M;
             moved = !moved;
             _prevPos = this.transform.position;
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+            moveSpeed += .5f;
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+            moveSpeed -= .5f;
 
         //ForcedReorderNeeded();
     }
@@ -647,6 +617,7 @@ public class perlinMover : MonoBehaviour
     public Texture2D grass;
 	void GenerateTrees()
 	{
+        
         foreach (var terr in terrain)
         {
             var t = terr.GetComponent<Terrain>();
@@ -659,21 +630,15 @@ public class perlinMover : MonoBehaviour
                 var ht = t.terrainData.GetHeight((int)r.x, (int)r.y);
                 var h1 = 0.1 * height;
                 var h2 = 0.4 * height;
-//                Debug.Log(r);
-//                Debug.Log(ht);
                 if (ht > h1 && ht < h2)
                 {
                     TreeInstance ti = new TreeInstance();
                     ti.position = new Vector3(r.x, 0, r.y);
                     ti.lightmapColor = Color.white;
                     ti.color = Color.white;
-                    ti.heightScale = 1 + (float)rand.NextDouble();
-                    ti.widthScale = 1 + (float)rand.NextDouble();
+                    ti.heightScale = 2.5f + (float)rand.NextDouble();
+                    ti.widthScale = 2.5f + (float)rand.NextDouble();
                     terr.GetComponent<Terrain>().AddTreeInstance(ti);
-                }
-                else
-                {
-                    //i--;
                 }
                 terr.GetComponent<Terrain>().Flush();
                 terr.GetComponent<Terrain>().terrainData.RefreshPrototypes();
@@ -1067,6 +1032,7 @@ public class perlinMover : MonoBehaviour
             {
                 float normalisedHeight = heightMap[Mx, My] * (1.0f / highestScore);
                 heightMap[Mx, My] = normalisedHeight;
+                averageHeight = averageHeight + (decimal)heightMap[Mx, My];
             }
         }
         return heightMap;

@@ -42,6 +42,7 @@ public class Mood : MonoBehaviour {
         {
             sunMoon.color = Color.white;
         }
+        Debug.Log(skyboxMaterials.Length + " LENGTH");
         Debug.Log(_skyMood);
         RenderSettings.skybox = skyboxMaterials.ElementAt(_skyMood);
 	}

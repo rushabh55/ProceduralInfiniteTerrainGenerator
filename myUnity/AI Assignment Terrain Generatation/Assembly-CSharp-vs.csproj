@@ -46,6 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\HUDFPS.cs" />
      <Compile Include="Assets\Mood.cs" />
      <Compile Include="Assets\RainFX\RainCreator.cs" />
      <Compile Include="Assets\VoroniBG.cs" />
