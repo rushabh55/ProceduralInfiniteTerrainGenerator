@@ -16,7 +16,7 @@ public class WaterBase : MonoBehaviour
 	public void UpdateShader() 
 	{		
 		if(waterQuality > WaterQuality.Medium)
-			sharedMaterial.shader.maximumLOD = 501;
+			sharedMaterial.shader.maximumLOD = 1000;
 		else if(waterQuality> WaterQuality.Low)
 			sharedMaterial.shader.maximumLOD = 301;
 		else 

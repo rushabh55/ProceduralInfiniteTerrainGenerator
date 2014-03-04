@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Threading;
 
 public class perlinMover : MonoBehaviour
 {
@@ -30,7 +31,7 @@ public class perlinMover : MonoBehaviour
     // and will return 0's when they aren't - so we budge
     // all indices by a consistent random number
     private float xOffset = (float)rand.NextDouble();
-    private float yOffset = (float)rand.NextDouble();
+    private float zOffset = (float)rand.NextDouble();
 
     // scale
     private float scale = 0.01f; // scale the indices so we end up with a reasonable heighmap based on them
@@ -102,45 +103,138 @@ public class perlinMover : MonoBehaviour
         generate();
         this.transform.position = new Vector3(terrain[CHUNKS / 2, CHUNKS / 2].transform.position.x, height, terrain[CHUNKS / 2, CHUNKS / 2].transform.position.z) + new Vector3(width / 2, 0, length / 2);
         GenerateTrees();
+        m_xOff = width * CHUNKS;
+        m_zOff = length * CHUNKS;
+        RescaleNormalize();
+        NormalizeEverything();
     }
 
+    void NormalizeEverything()
+    {
+            var terrain1 = terrain[0, 0].GetComponent<Terrain>();
+            var terrain2 = terrain[0, 1].GetComponent<Terrain>();
+            var terrain3 = terrain[0, 2].GetComponent<Terrain>();
+            var terrain4 = terrain[1, 0].GetComponent<Terrain>();
+            var terrain5 = terrain[1, 1].GetComponent<Terrain>();
+            var terrain6 = terrain[1, 2].GetComponent<Terrain>();
+            var terrain7 = terrain[2, 0].GetComponent<Terrain>();
+            var terrain8 = terrain[2, 1].GetComponent<Terrain>();
+            var terrain9 = terrain[2, 2].GetComponent<Terrain>();
+
+            //terrain1.SetNeighbors( LEFT     TOP     RIGHT   BOTTOM)
+            terrain1.SetNeighbors(null, terrain2, terrain4, null);
+            terrain2.SetNeighbors(null, terrain3, terrain5, terrain1);
+            terrain3.SetNeighbors(null, null, terrain6, terrain2);
+            terrain4.SetNeighbors(terrain1, terrain5, terrain7, null);
+            terrain5.SetNeighbors(terrain2, terrain6, terrain8, terrain4);
+            terrain6.SetNeighbors(terrain3, null, terrain9, terrain5);
+            terrain7.SetNeighbors(terrain4, terrain8, null, null);
+            terrain8.SetNeighbors(terrain5, terrain9, null, terrain9);
+            terrain9.SetNeighbors(terrain6, null, null, terrain8);
+
+            terrain1.Flush();
+            terrain2.Flush();
+            terrain3.Flush();
+            terrain4.Flush();
+            terrain5.Flush();
+            terrain6.Flush();
+            terrain7.Flush();
+            terrain8.Flush();
+            terrain9.Flush();       
+    }
+
+    void RescaleNormalize()
+    {
+        float[,] heights0 = new float[64, 1];
+        float[,] heights1 = new float[1,64];
+        averageHeight = 0;
+        Debug.Log(averageHeight + "Height");
+        for (int i = 0; i < 64; i++)
+        {
+            foreach (var terr in terrain)
+            {
+                heights0[i, 0] = terr.GetComponent<Terrain>().terrainData.GetHeight(0, i);
+                heights0[i, 0] += (float)averageHeight;         
+            }
+        }
+
+        for (int i = 0; i < 64; i++)
+        {
+            heights1[0, i] = (float)averageHeight;
+        }
+
+
+        foreach (var terr in terrain)
+        {
+            terr.GetComponent<Terrain>().terrainData.SetHeights(0, 1, heights0);
+            terr.GetComponent<Terrain>().terrainData.SetHeights(0, 1, heights1);
+        }
+
+       //int i = width / 2; 
+       // {
+       //     int j = length / 2;
+       //     {
+       //         foreach (var terr in terrain)
+       //         {
+       //             var t = terr.GetComponent<Terrain>();
+       //             var heights = new float[5, 5];
+       //             for (int y = 0; y < 5; y++)
+       //                 for (int x = 0; x < 5; x++)
+       //                 {
+       //                     heights[x, y] += (float)averageHeight;
+       //                 }
+       //             t.terrainData.SetHeights(i, j, heights);
+       //             t.terrainData.SetHeights(i, 0, heights);
+       //             t.terrainData.SetHeights(0, j, heights);
+       //             t.terrainData.SetHeights(0, 0, heights);
+       //             Debug.Log(averageHeight);
+       //         }
+       //     }
+       // }
+    }
     // Update is called once per frame
     void Update()
     {
+
+        //NormalizeEverything();
         this.Move();
         var TILE_SIZE = length;
         if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE > 1 && !moved)
         {
+            m_xOff += width;
             MovePosX();
             moved = true;
         }
 
         if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE < -1 && !moved)
         {
+            m_xOff *= -1;
+            m_xOff -= width;
             MoveNegX();
+            m_xOff *= -1;
             moved = true;
         }
 
         if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE < -1 && !moved)
         {
+            m_zOff -= length;
+            m_zOff *= -1;
             MoveNegZ();
+            m_zOff *= -1;
             moved = true;
         }
 
         if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE > 1 && !moved)
         {
+            m_zOff += length;
             MovePosZ();
             moved = true;
         }
 
         if (moved)
         {
-            if (middleMove)
-            {
-                middleMove = false;
-                CalcNoise(terrain[CHUNKS / 2,CHUNKS / 2].GetComponent<Terrain>());
-            }
-            //  foreach(var t in terrain)
+            RescaleNormalize();
+            NormalizeEverything();
             moved = !moved;
             _prevPos = this.transform.position;
         }
@@ -203,97 +297,137 @@ public class perlinMover : MonoBehaviour
     #endregion
 
     #region TerrainMOVE
-
     private static Vector3 _prevPos;
     private void MovePosZ()
     {
-        if (terrain == null)
-            return;
-
-        GameObject[,] pos = new GameObject[CHUNKS, CHUNKS];
-
-        pos = terrain;
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            pos[i, 0].transform.position = terrain[i, 1].transform.position;
-            pos[i, 1].transform.position = terrain[i, 2].transform.position;
-            pos[i, 2].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 4);
-        }
-
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            CalcNoise(pos[i, 2].GetComponent<Terrain>());
-        }
-
-        var main = pos[0, 2].GetComponent<Terrain>();
-        pos[0, 2].GetComponent<Terrain>().SetNeighbors(null, null, pos[1, 2].GetComponent<Terrain>(), pos[0, 1].GetComponent<Terrain>());
-        pos[1, 2].GetComponent<Terrain>().SetNeighbors(pos[0, 2].GetComponent<Terrain>(), null, pos[2, 2].GetComponent<Terrain>(), pos[1, 1].GetComponent<Terrain>());
-        pos[2, 2].GetComponent<Terrain>().SetNeighbors(pos[1, 2].GetComponent<Terrain>(), null, null, pos[2, 1].GetComponent<Terrain>());
-        m_zOff += length;
-        terrain = pos;
+		if (terrain == null)
+			return;
+        Debug.Log("Move Pos z");
+		GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
+		
+		for(int i = 0; i < CHUNKS; i++)
+		{
+			terrain[i, 0].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 3);
+            CalcNoise(terrain[i, 0].GetComponent<Terrain>());
+		}
+		
+		for(int i = 0; i < CHUNKS; i++)
+		{
+            for (int j = 0; j < CHUNKS; j++)
+            {
+                if (j == 2)
+                    newTerrains[i, j] = terrain[i, 0];
+                else
+                {
+                    newTerrains[i, j] = terrain[i, j+1];
+                }
+            }
+		}		
+		terrain = newTerrains;
     }
 
     private void MoveNegZ()
     {
         if (terrain == null)
             return;
-        GameObject[,] pos = new GameObject[CHUNKS, CHUNKS];
-        pos = terrain;
+
+        Debug.Log("Move Pos z");
+        GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
+
         for (int i = 0; i < CHUNKS; i++)
         {
-            //terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width, 0, 0);
-            pos[i, 2].transform.position = terrain[i, 1].transform.position;
-            pos[i, 1].transform.position = terrain[i, 0].transform.position;
-            pos[i, 0].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length - 4);
+            terrain[i, 2].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length -3 );
+            CalcNoise(terrain[i, 2].GetComponent<Terrain>());
         }
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            CalcNoise(pos[i, 0].GetComponent<Terrain>());
+            for (int j = 0; j < CHUNKS; j++)
+            {
+                if (j == 0)
+                    newTerrains[i, j] = terrain[i, 2];
+                else
+                {
+                    newTerrains[i, j] = terrain[i, j - 1];
+                }
+            }
         }
-        terrain = pos;
+        terrain = newTerrains;
     }
 
     private void MoveNegX()
     {
         if (terrain == null)
             return;
-        GameObject[,] pos = new GameObject[CHUNKS, CHUNKS];
-        pos = terrain;
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            //terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width, 0, 0);
-            pos[2, i].transform.position = terrain[1, i].transform.position;
-            pos[1, i].transform.position = terrain[0, i].transform.position;
-            pos[0, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 4, 0, 0);
-        }
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            CalcNoise(pos[0, i].GetComponent<Terrain>());
-        }
-        terrain = pos;
-    }
+        Debug.Log("Move Neg x");
+        GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
 
-    Vector2 moveVec = new Vector2();
+        int n_zoffset = m_zOff;
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            terrain[2, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 3, 0, 0);
+            CalcNoise(terrain[2, i].GetComponent<Terrain>());
+        }
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            for (int j = 0; j < CHUNKS; j++)
+            {
+                if (i == 0)
+                    newTerrains[i, j] = terrain[2, j];
+                else
+                {
+                    newTerrains[i, j] = terrain[i - 1, j];
+                }
+            }
+        }
+        terrain = newTerrains;
+
+     
+        
+    }
 
     void MovePosX()
     {
+
         if (terrain == null)
             return;
-        GameObject[,] pos = new GameObject[CHUNKS, CHUNKS];
-        pos = terrain;
+        Debug.Log("Move Pos x");
+        GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
+        int n_zoffset = m_zOff;
+        m_zOff -= 3 * length;
         for (int i = 0; i < CHUNKS; i++)
         {
-            //terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width, 0, 0);
-            pos[0, i].transform.position = terrain[1, i].transform.position;
-            pos[1, i].transform.position = terrain[2, i].transform.position;
-            pos[2, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 4, 0, 0);
-        } 
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            CalcNoise(pos[2, i].GetComponent<Terrain>());
+            terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 3, 0, 0);
+            CalcNoise(terrain[0, i].GetComponent<Terrain>());
+            m_zOff += length;
         }
-        terrain = pos;
+        m_zOff = n_zoffset;
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            for (int j = 0; j < CHUNKS; j++)
+            {
+                if (i == 2)
+                    newTerrains[i, j] = terrain[0, j];
+                else
+                {
+                    newTerrains[i, j] = terrain[i + 1, j];
+                }
+            }
+        }
+        terrain = newTerrains;
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            if(i == 0)
+                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), terrain[2, i + 1].GetComponent<Terrain>(), null, null);
+            if(i == 2)
+                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), null, null, terrain[2, i - 1].GetComponent<Terrain>());
+            if(i == 1)
+                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), terrain[2, i + 1].GetComponent<Terrain>() , null, terrain[2, i -1].GetComponent<Terrain>());
+        }
     }
     #endregion
 
@@ -536,7 +670,6 @@ public class perlinMover : MonoBehaviour
                     ti.heightScale = 1 + (float)rand.NextDouble();
                     ti.widthScale = 1 + (float)rand.NextDouble();
                     terr.GetComponent<Terrain>().AddTreeInstance(ti);
-                    Debug.Log(r);
                 }
                 else
                 {
@@ -757,7 +890,7 @@ public class perlinMover : MonoBehaviour
             {
                 //Debug.Log(i);
                 //Debug.Log(j);
-                var w = height2d((positionX + i) * scale + xOffset, (positionZ + j) * scale + yOffset, perlinOctaves, 2.0f, gain) + zOffset;
+                var w = height2d((positionX + i) * scale + this.m_xOff, (positionZ + j) * scale + this.m_zOff, perlinOctaves, 2.0f, gain) + zOffset;
                 if (regen)
                     pos[i, j] = w;
                 else
@@ -792,7 +925,13 @@ public class perlinMover : MonoBehaviour
             {
                 float normalisedHeight = ((heightMap[Mx, My] - lowestPoint) / heightRange) * normalisedHeightRange;
                 heightMap[Mx, My] = normaliseMin + (float)normalisedHeight;
-                averageHeight += (double)heightMap[Mx, My] == double.NaN ? 0 : (decimal)heightMap[Mx, My];
+                try
+                {
+                    averageHeight += (double)heightMap[Mx, My] == double.NaN ? 0 : (decimal)heightMap[Mx, My];
+                }
+                catch (System.Exception)
+                {
+                }
             }
         }
 
@@ -937,22 +1076,23 @@ public class perlinMover : MonoBehaviour
 
     #region Recalculate Noise
     int m_xOff, m_zOff;
+    
     void CalcNoise(Terrain t)
     {
+        perlinGain = (float)rand.NextDouble();
         voronoiCells = 8;
         var heightMap = t.terrainData.GetHeights(0, 0, (int)width, (int)length);     
-        heightMap = k_perlin(heightMap, width, length, 0.95f, 0, 0, 0, true);
-        xOffset += width;
+        heightMap = k_perlin(heightMap, width, length, perlinGain, 0, 0, 0, true);
         NewTextures(t, heightMap, width, height);
         t.terrainData.RefreshPrototypes();
         t.terrainData.SetHeights(0, 0, heightMap);
     }
 
-    private void NewTextures(Terrain t, float[,] heightMap, int width, int height)
+    private void NewTextures(Terrain t, float[,] heightMap, int width, int length)
     {
         for (int i = 0; i < width - 1; i++)
         {
-            for (int j = 0; j < width - 1; j++)
+            for (int j = 0; j < length - 1; j++)
             {
                 #region RE - TEXTURING
                 var CurrentHeight = heightMap[i, j];
@@ -1017,6 +1157,8 @@ public class perlinMover : MonoBehaviour
             }
         }
     }
+
+    
     #endregion
 
 }

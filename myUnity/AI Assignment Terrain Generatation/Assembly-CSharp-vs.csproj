@@ -50,6 +50,7 @@
      <Compile Include="Assets\RainFX\RainCreator.cs" />
      <Compile Include="Assets\VoroniBG.cs" />
      <Compile Include="Assets\follow.cs" />
+     <Compile Include="Assets\perlinBG.cs" />
      <Compile Include="Assets\perlinMover.cs" />
      <None Include="Assets\Standard Assets\Tessellation Shaders\BumpedSpecularSmooth.shader" />
      <None Include="Assets\Standard Assets\Particles\Sources\Shaders\Particle Alpha Blend (Queue +100).shader" />
