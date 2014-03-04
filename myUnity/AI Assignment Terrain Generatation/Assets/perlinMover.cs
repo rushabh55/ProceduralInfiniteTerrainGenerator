@@ -49,7 +49,9 @@ public class perlinMover : MonoBehaviour
 
     public GameObject[] _treeInstance = null;
 
-    public TreePrototype[] tree = null;    
+    public TreePrototype[] tree = null;
+    public GameObject[] detailObjects = null;
+
     public int voronoiCells = 15;
     public float voronoiFeatures;
     public float voronoiScale { get; set; }
@@ -503,32 +505,29 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row].size = new Vector3(width - 1, height, length - 1);
                 tData[col * CHUNKS + row].splatPrototypes = test;
 
-                DetailPrototype[] dProtos = new DetailPrototype[2];
-                dProtos[0] = new DetailPrototype();
-                dProtos[0].prototype = water;
-                dProtos[0].healthyColor = Color.white;
-                dProtos[0].dryColor = Color.black;
-                dProtos[0].noiseSpread = 1f;
-                dProtos[0].maxHeight = 1;
-                dProtos[0].maxWidth = 1;
-                dProtos[0].renderMode = DetailRenderMode.VertexLit;
-                dProtos[0].usePrototypeMesh = true;
-                
-                dProtos[1] = new DetailPrototype();
-                dProtos[1].prototypeTexture = grass;
-                dProtos[1].healthyColor = Color.white;
-                dProtos[1].dryColor = Color.black;
-                dProtos[1].renderMode = DetailRenderMode.Grass;
-                dProtos[1].noiseSpread = 1f;
-                dProtos[1].maxWidth = 1;
-                dProtos[1].maxHeight = 1;
-                dProtos[1].minHeight = 0.5f;
-                dProtos[1].minWidth = 0.5f;
-                dProtos[1].usePrototypeMesh = false;
-                dProtos[1].bendFactor = 1f;
-
+                DetailPrototype[] dProtos = new DetailPrototype[detailObjects.Length];
+                for (int i = 0; i < detailObjects.Length; i++)
+                {
+                    dProtos[i] = new DetailPrototype();
+                    dProtos[i].prototype = water;
+                    dProtos[i].healthyColor = Color.white;
+                    dProtos[i].dryColor = Color.black;
+                    dProtos[i].noiseSpread = 1f;
+                    dProtos[i].maxHeight = 1;
+                    dProtos[i].maxWidth = 1;
+                    dProtos[i].renderMode = DetailRenderMode.VertexLit;
+                    dProtos[i].usePrototypeMesh = true;
+                }
                 tData[col * CHUNKS + row].detailPrototypes = dProtos;
-
+                int[,] details = new int[width, length];
+                for (int i = 0; i < width; i++)
+                {
+                    for (int j = 0; j < length; j++)
+                    {                     
+                      details[i, j] = rand.Next(0, detailObjects.Length);                        
+                    }
+                }
+                tData[col * CHUNKS + row].SetDetailLayer(0, 0, 1, details);
 
                 TreePrototype[] _treeprotos = new TreePrototype[_treeInstance.Length];
                 for (int i = 0; i < _treeInstance.Length; i++)
@@ -630,7 +629,6 @@ public class perlinMover : MonoBehaviour
 
 	#region ADDING TREES
     public GameObject water;
-    public Texture2D grass;
 	void GenerateTrees()
 	{
         int treesAdd = 0;
