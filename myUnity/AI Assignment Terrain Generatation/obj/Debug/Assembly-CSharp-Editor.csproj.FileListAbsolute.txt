@@ -17,3 +17,6 @@
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.csprojResolveAssemblyReference.cache
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.dll
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.pdb
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.csprojResolveAssemblyReference.cache
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.dll
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp-Editor.pdb

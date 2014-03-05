@@ -10,3 +10,6 @@
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.dll
 \\banner.main.ad.rit.edu\students\rug4133\IGMProfile\Documents\TerrainGeneration\myUnity\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.pdb
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.dll
+D:\AI Assignment Terrain Generatation\obj\Debug\Assembly-CSharp.pdb

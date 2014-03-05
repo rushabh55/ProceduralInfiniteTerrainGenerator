@@ -50,10 +50,12 @@ public class perlinMover : MonoBehaviour
     public GameObject[] _treeInstance = null;
 
     public TreePrototype[] tree = null;
-    public GameObject[] detailObjects = null;
+
+    public Texture2D[] detailObjects = null;
 
     public int voronoiCells = 15;
     public float voronoiFeatures;
+
     public float voronoiScale { get; set; }
     public bool moved { get; set; }
     #endregion
@@ -62,171 +64,191 @@ public class perlinMover : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        Application.targetFrameRate = 30;
-        width = (int)size.x;
-        length = (int)size.z;
-        height = (int)size.y;
-//        Debug.Log(width);
-        RenderSettings.skybox = skyboxMaterials[rand.Next(0, skyboxMaterials.Length)];
+        try
+        {
+            Application.targetFrameRate = 120;
+            width = (int)size.x;
+            length = (int)size.z;
+            height = (int)size.y;
+            RenderSettings.skybox = skyboxMaterials[rand.Next(0, skyboxMaterials.Length)];
 
-        test[0] = new SplatPrototype();
-        test[0].texture = (Texture2D)Resources.Load("GoodDirt", typeof(Texture2D));
-        test[0].tileOffset = new Vector2(0, 0);
-        test[0].tileSize = new Vector2(width, length);
+            test[0] = new SplatPrototype();
+            test[0].texture = (Texture2D)Resources.Load("GoodDirt", typeof(Texture2D));
+            test[0].tileOffset = new Vector2(0, 0);
+            test[0].tileSize = new Vector2(width, length);
 
-        test[1] = new SplatPrototype();
-        test[1].texture = (Texture2D)Resources.Load("Grass", typeof(Texture2D));
-        test[1].tileOffset = new Vector2(0, 0);
-        test[1].tileSize = new Vector2(width, length);
+            test[1] = new SplatPrototype();
+            test[1].texture = (Texture2D)Resources.Load("Grass", typeof(Texture2D));
+            test[1].tileOffset = new Vector2(0, 0);
+            test[1].tileSize = new Vector2(width, length);
 
-        test[2] = new SplatPrototype();
-        test[2].texture = (Texture2D)Resources.Load("Grass&Rock", typeof(Texture2D));
-        test[2].tileOffset = new Vector2(0, 0);
-        test[2].tileSize = new Vector2(width, length);
+            test[2] = new SplatPrototype();
+            test[2].texture = (Texture2D)Resources.Load("Grass&Rock", typeof(Texture2D));
+            test[2].tileOffset = new Vector2(0, 0);
+            test[2].tileSize = new Vector2(width, length);
 
-        test[3] = new SplatPrototype();
-        test[3].texture = (Texture2D)Resources.Load("Cliff", typeof(Texture2D));
-        test[3].tileOffset = new Vector2(0, 0);
-        test[3].tileSize = new Vector2(width, length);
+            test[3] = new SplatPrototype();
+            test[3].texture = (Texture2D)Resources.Load("Cliff", typeof(Texture2D));
+            test[3].tileOffset = new Vector2(0, 0);
+            test[3].tileSize = new Vector2(width, length);
 
-        test[4] = new SplatPrototype();
-        test[4].texture = (Texture2D)Resources.Load("Snow/1", typeof(Texture2D));
-        test[4].tileOffset = new Vector2(0, 0);
-        test[4].tileSize = new Vector2(width, length);
+            test[4] = new SplatPrototype();
+            test[4].texture = (Texture2D)Resources.Load("Snow/1", typeof(Texture2D));
+            test[4].tileOffset = new Vector2(0, 0);
+            test[4].tileSize = new Vector2(width, length);
 
-        test[5] = new SplatPrototype();
-        test[5].texture = (Texture2D)Resources.Load("Snow/3", typeof(Texture2D));
-        test[5].tileOffset = new Vector2(0, 0);
-        test[5].tileSize = new Vector2(width, length);
+            test[5] = new SplatPrototype();
+            test[5].texture = (Texture2D)Resources.Load("Snow/3", typeof(Texture2D));
+            test[5].tileOffset = new Vector2(0, 0);
+            test[5].tileSize = new Vector2(width, length);
 
-        test[6] = new SplatPrototype();
-        test[6].texture = (Texture2D)Resources.Load("Snow/2", typeof(Texture2D));
-        test[6].tileOffset = new Vector2(0, 0);
-        test[6].tileSize = new Vector2(width, length);
-        generate();
-        this.transform.position = new Vector3(terrain[CHUNKS / 2, CHUNKS / 2].transform.position.x, height, terrain[CHUNKS / 2, CHUNKS / 2].transform.position.z) + new Vector3(width / 2, 0, length / 2);
-        GenerateTrees();
-        m_xOff = width * CHUNKS;
-        m_zOff = length * CHUNKS;
-        //RescaleNormalize();
-        NormalizeEverything();
+            test[6] = new SplatPrototype();
+            test[6].texture = (Texture2D)Resources.Load("Snow/2", typeof(Texture2D));
+            test[6].tileOffset = new Vector2(0, 0);
+            test[6].tileSize = new Vector2(width, length);
+            generate();
+            this.transform.position = new Vector3(terrain[CHUNKS / 2, CHUNKS / 2].transform.position.x, height, terrain[CHUNKS / 2, CHUNKS / 2].transform.position.z) + new Vector3(width / 2, 0, length / 2);
+            GenerateTrees();
+            m_xOff = width * CHUNKS;
+            m_zOff = length * CHUNKS;
+            //RescaleNormalize();
+            NormalizeEverything();
+        }
+        catch (Exception)
+        {
+        }
     }
 
     void NormalizeEverything()
     {
-            var terrain1 = terrain[0, 0].GetComponent<Terrain>();
-            var terrain2 = terrain[0, 1].GetComponent<Terrain>();
-            var terrain3 = terrain[0, 2].GetComponent<Terrain>();
-            var terrain4 = terrain[1, 0].GetComponent<Terrain>();
-            var terrain5 = terrain[1, 1].GetComponent<Terrain>();
-            var terrain6 = terrain[1, 2].GetComponent<Terrain>();
-            var terrain7 = terrain[2, 0].GetComponent<Terrain>();
-            var terrain8 = terrain[2, 1].GetComponent<Terrain>();
-            var terrain9 = terrain[2, 2].GetComponent<Terrain>();
+        var terrain1 = terrain[0, 0].GetComponent<Terrain>();
+        var terrain2 = terrain[0, 1].GetComponent<Terrain>();
+        var terrain3 = terrain[0, 2].GetComponent<Terrain>();
+        var terrain4 = terrain[1, 0].GetComponent<Terrain>();
+        var terrain5 = terrain[1, 1].GetComponent<Terrain>();
+        var terrain6 = terrain[1, 2].GetComponent<Terrain>();
+        var terrain7 = terrain[2, 0].GetComponent<Terrain>();
+        var terrain8 = terrain[2, 1].GetComponent<Terrain>();
+        var terrain9 = terrain[2, 2].GetComponent<Terrain>();
 
-            //terrain1.SetNeighbors( LEFT     TOP     RIGHT   BOTTOM)
-            terrain1.SetNeighbors(null, terrain2, terrain4, null);
-            terrain2.SetNeighbors(null, terrain3, terrain5, terrain1);
-            terrain3.SetNeighbors(null, null, terrain6, terrain2);
-            terrain4.SetNeighbors(terrain1, terrain5, terrain7, null);
-            terrain5.SetNeighbors(terrain2, terrain6, terrain8, terrain4);
-            terrain6.SetNeighbors(terrain3, null, terrain9, terrain5);
-            terrain7.SetNeighbors(terrain4, terrain8, null, null);
-            terrain8.SetNeighbors(terrain5, terrain9, null, terrain9);
-            terrain9.SetNeighbors(terrain6, null, null, terrain8);
+        //terrain1.SetNeighbors( LEFT     TOP     RIGHT   BOTTOM)
+        terrain1.SetNeighbors(null, terrain2, terrain4, null);
+        terrain2.SetNeighbors(null, terrain3, terrain5, terrain1);
+        terrain3.SetNeighbors(null, null, terrain6, terrain2);
+        terrain4.SetNeighbors(terrain1, terrain5, terrain7, null);
+        terrain5.SetNeighbors(terrain2, terrain6, terrain8, terrain4);
+        terrain6.SetNeighbors(terrain3, null, terrain9, terrain5);
+        terrain7.SetNeighbors(terrain4, terrain8, null, null);
+        terrain8.SetNeighbors(terrain5, terrain9, null, terrain9);
+        terrain9.SetNeighbors(terrain6, null, null, terrain8);
+        try
+        {
+            Debug.Log("Start");
+            stichAll(ref terrain1, null, terrain2, terrain4, null);
+            stichAll(ref terrain2, null, terrain3, terrain5, terrain1);
+            stichAll(ref terrain3, null, null, terrain6, terrain2);
+            stichAll(ref terrain4, terrain1, terrain5, terrain7, null);
+            stichAll(ref terrain5, terrain2, terrain6, terrain8, terrain4);
+            stichAll(ref terrain6, terrain3, null, terrain9, terrain5);
+            stichAll(ref terrain7, terrain4, terrain8, null, null);
+            stichAll(ref terrain8, terrain5, terrain9, null, terrain9);
+            stichAll(ref terrain9, terrain6, null, null, terrain8);
+            Debug.Log("End");
+        }
+        catch (Exception _e)
+        {
+            Debug.Log(_e.Message);
+        }
+        terrain1.Flush();
+        terrain2.Flush();
+        terrain3.Flush();
+        terrain4.Flush();
+        terrain5.Flush();
+        terrain6.Flush();
+        terrain7.Flush();
+        terrain8.Flush();
+        terrain9.Flush();
 
-            terrain1.Flush();
-            terrain2.Flush();
-            terrain3.Flush();
-            terrain4.Flush();
-            terrain5.Flush();
-            terrain6.Flush();
-            terrain7.Flush();
-            terrain8.Flush();
-            terrain9.Flush();
-
-            terrain1.terrainData.RefreshPrototypes();
-            terrain2.terrainData.RefreshPrototypes();
-            terrain3.terrainData.RefreshPrototypes();
-            terrain4.terrainData.RefreshPrototypes();
-            terrain5.terrainData.RefreshPrototypes();
-            terrain6.terrainData.RefreshPrototypes();
-            terrain7.terrainData.RefreshPrototypes();
-            terrain8.terrainData.RefreshPrototypes();
-            terrain9.terrainData.RefreshPrototypes();
+        terrain1.terrainData.RefreshPrototypes();
+        terrain2.terrainData.RefreshPrototypes();
+        terrain3.terrainData.RefreshPrototypes();
+        terrain4.terrainData.RefreshPrototypes();
+        terrain5.terrainData.RefreshPrototypes();
+        terrain6.terrainData.RefreshPrototypes();
+        terrain7.terrainData.RefreshPrototypes();
+        terrain8.terrainData.RefreshPrototypes();
+        terrain9.terrainData.RefreshPrototypes();
     }
 
     void NormalizeBoundaries()
     {
-        var ht1 = new float[1, 64];
-        var ht2 = new float[64, 1];
+        //var ht1 = new float[1, 64];
+        //var ht2 = new float[64, 1];
 
-        foreach (var t in terrain)
-        {
-            t.GetComponent<Terrain>().terrainData.SetHeights(0, 63, ht1);
-            t.GetComponent<Terrain>().terrainData.SetHeights(63, 0, ht2);
-        }
-    }
-
-    void LateUpdate()
-    {
-      //  NormalizeEverything();
+        //foreach (var t in terrain)
+        //{
+        //    t.GetComponent<Terrain>().terrainData.SetHeights(0, 63, ht1);
+        //    t.GetComponent<Terrain>().terrainData.SetHeights(63, 0, ht2);
+        //}
     }
 
     void Update()
     {
-        this.Move();
-        var TILE_SIZE = length;
-        if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE > 1 && !moved)
+        try
         {
-            m_xOff += width;
-            MovePosX();
-            moved = true;
-        }
+            this.Move();
+            var TILE_SIZE = length;
+            if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE > 1 && !moved)
+            {
+                m_xOff += width;
+                MovePosX();
+                moved = true;
+            }
 
-        if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE < -1 && !moved)
+            if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE < -1 && !moved)
+            {
+                m_xOff *= -1;
+                m_xOff -= width;
+                MoveNegX();
+                m_xOff *= -1;
+                moved = true;
+            }
+
+            if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE < -1 && !moved)
+            {
+                m_zOff -= length;
+                m_zOff *= -1;
+                MoveNegZ();
+                m_zOff *= -1;
+                moved = true;
+            }
+
+            if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE > 1 && !moved)
+            {
+                m_zOff += length;
+                MovePosZ();
+                moved = true;
+            }
+
+            if (moved)
+            {
+                NormalizeEverything();
+                moved = !moved;
+                _prevPos = this.transform.position;
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftShift))
+                moveSpeed += .5f;
+            if (Input.GetKeyUp(KeyCode.LeftShift))
+                moveSpeed -= .5f;
+
+            //ForcedReorderNeeded();
+        }
+        catch (Exception)
         {
-            m_xOff *= -1;
-            m_xOff -= width;
-            MoveNegX();
-            m_xOff *= -1;
-            moved = true;
         }
-
-        if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE < -1 && !moved)
-        {
-            m_zOff -= length;
-            m_zOff *= -1;
-            MoveNegZ();
-            m_zOff *= -1;
-            moved = true;
-        }
-
-        if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE > 1 && !moved)
-        {
-            m_zOff += length;
-            MovePosZ();
-            moved = true;
-        }
-
-        if (moved)
-        {
-            //RescaleNormalize();
-            NormalizeEverything();
-            NormalizeBoundaries();
-            averageHeight *= 0.002M;
-            moved = !moved;
-            _prevPos = this.transform.position;
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-            moveSpeed += .5f;
-        if (Input.GetKeyUp(KeyCode.LeftShift))
-            moveSpeed -= .5f;
-
-        //ForcedReorderNeeded();
     }
-	#endregion
+    #endregion
 
     #region FORCEREORDER
     public GameObject frontCube = null;
@@ -240,7 +262,7 @@ public class perlinMover : MonoBehaviour
         foreach (var t in terrain)
         {
             Vector2 fCubePos = new Vector2(frontCube.transform.position.x, frontCube.transform.position.z);
-			var td = t.GetComponent<Terrain>();
+            var td = t.GetComponent<Terrain>();
             Rect r = new Rect(t.transform.position.x, t.transform.position.z, td.terrainData.size.x, td.terrainData.size.z);
             if (!r.Contains(frontCube.transform.position))
             {
@@ -250,7 +272,6 @@ public class perlinMover : MonoBehaviour
 
         if (flag)
         {
-            Debug.Log("FORCE REORDERED");
             var TILE_SIZE = length;
             if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE > 0 && !moved)
             {
@@ -285,30 +306,33 @@ public class perlinMover : MonoBehaviour
     private static Vector3 _prevPos;
     private void MovePosZ()
     {
-		if (terrain == null)
-			return;
+        if (terrain == null)
+            return;
+
         Debug.Log("Move Pos z");
-		GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
-		
-		for(int i = 0; i < CHUNKS; i++)
-		{
-			terrain[i, 0].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 3);
+        GameObject[,] newTerrains = new GameObject[CHUNKS, CHUNKS];
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
+            terrain[i, 0].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 1);
             CalcNoise(terrain[i, 0].GetComponent<Terrain>());
-		}
-		
-		for(int i = 0; i < CHUNKS; i++)
-		{
+            Debug.Log("X : " + m_xOff);
+            Debug.Log("Z : " + m_zOff);
+        }
+
+        for (int i = 0; i < CHUNKS; i++)
+        {
             for (int j = 0; j < CHUNKS; j++)
             {
                 if (j == 2)
                     newTerrains[i, j] = terrain[i, 0];
                 else
                 {
-                    newTerrains[i, j] = terrain[i, j+1];
+                    newTerrains[i, j] = terrain[i, j + 1];
                 }
             }
-		}		
-		terrain = newTerrains;
+        }
+        terrain = newTerrains;
     }
 
     private void MoveNegZ()
@@ -321,8 +345,10 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[i, 2].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length -3 );
+            terrain[i, 2].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length - 1);
             CalcNoise(terrain[i, 2].GetComponent<Terrain>());
+            Debug.Log("X : " + m_xOff);
+            Debug.Log("Z : " + m_zOff);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -351,8 +377,10 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[2, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 3, 0, 0);
+            terrain[2, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 1, 0, 0);
             CalcNoise(terrain[2, i].GetComponent<Terrain>());
+            Debug.Log("X : " + m_xOff);
+            Debug.Log("Z : " + m_zOff);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -369,13 +397,12 @@ public class perlinMover : MonoBehaviour
         }
         terrain = newTerrains;
 
-     
-        
+
+
     }
 
     void MovePosX()
     {
-
         if (terrain == null)
             return;
         Debug.Log("Move Pos x");
@@ -384,9 +411,11 @@ public class perlinMover : MonoBehaviour
         m_zOff -= 3 * length;
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 3, 0, 0);
+            terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 1, 0, 0);
             CalcNoise(terrain[0, i].GetComponent<Terrain>());
             m_zOff += length;
+            Debug.Log("X : " + m_xOff);
+            Debug.Log("Z : " + m_zOff);
         }
         m_zOff = n_zoffset;
 
@@ -403,16 +432,6 @@ public class perlinMover : MonoBehaviour
             }
         }
         terrain = newTerrains;
-
-        for (int i = 0; i < CHUNKS; i++)
-        {
-            if(i == 0)
-                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), terrain[2, i + 1].GetComponent<Terrain>(), null, null);
-            if(i == 2)
-                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), null, null, terrain[2, i - 1].GetComponent<Terrain>());
-            if(i == 1)
-                terrain[2, i].GetComponent<Terrain>().SetNeighbors(terrain[1, i].GetComponent<Terrain>(), terrain[2, i + 1].GetComponent<Terrain>() , null, terrain[2, i -1].GetComponent<Terrain>());
-        }
     }
     #endregion
 
@@ -504,30 +523,8 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row].SetHeights(0, 0, heightMap[col * CHUNKS + row]);
                 tData[col * CHUNKS + row].size = new Vector3(width - 1, height, length - 1);
                 tData[col * CHUNKS + row].splatPrototypes = test;
-
-                DetailPrototype[] dProtos = new DetailPrototype[detailObjects.Length];
-                for (int i = 0; i < detailObjects.Length; i++)
-                {
-                    dProtos[i] = new DetailPrototype();
-                    dProtos[i].prototype = water;
-                    dProtos[i].healthyColor = Color.white;
-                    dProtos[i].dryColor = Color.black;
-                    dProtos[i].noiseSpread = 1f;
-                    dProtos[i].maxHeight = 1;
-                    dProtos[i].maxWidth = 1;
-                    dProtos[i].renderMode = DetailRenderMode.VertexLit;
-                    dProtos[i].usePrototypeMesh = true;
-                }
-                tData[col * CHUNKS + row].detailPrototypes = dProtos;
-                int[,] details = new int[width, length];
-                for (int i = 0; i < width; i++)
-                {
-                    for (int j = 0; j < length; j++)
-                    {                     
-                      details[i, j] = rand.Next(0, detailObjects.Length);                        
-                    }
-                }
-                tData[col * CHUNKS + row].SetDetailLayer(0, 0, 1, details);
+                tData[col * CHUNKS + row].detailPrototypes = setDetails(tData[col * CHUNKS + row]);
+                tData[col * CHUNKS + row].SetDetailLayer(0, 0, 0, getDetailLayers(tData[col * CHUNKS + row]));
 
                 TreePrototype[] _treeprotos = new TreePrototype[_treeInstance.Length];
                 for (int i = 0; i < _treeInstance.Length; i++)
@@ -555,9 +552,9 @@ public class perlinMover : MonoBehaviour
                         //...end..
                         var CurrentHeight = heightMap[col * CHUNKS + row][i * width / ALPHA_TILE_SIZE, j * length / ALPHA_TILE_SIZE];
                         var blendFactor = (float)rand.NextDouble();
-#region TEXTURING
+                        #region TEXTURING
                         if (CurrentHeight < 0.2f && CurrentHeight > 0.0f)
-                        {                            
+                        {
                             singlePoint[0, 0, 0] = blendFactor / 2f;
                             singlePoint[0, 0, 1] = blendFactor / 2f;
                             singlePoint[0, 0, 2] = 1f - blendFactor;
@@ -615,42 +612,86 @@ public class perlinMover : MonoBehaviour
                 }
                 terrain[row, col] = Terrain.CreateTerrainGameObject(tData[col * CHUNKS + row]);
                 terrain[row, col].transform.position = whereIsTerrain[row, col] - new Vector3(2.87f * row, 0, 2.87f * col);
-                terrain[row, col].name = (++terrno).ToString();                
+                terrain[row, col].name = (++terrno).ToString();
+                terrain[row, col].GetComponent<Terrain>().Flush();
+                terrain[row, col].GetComponent<Terrain>().terrainData.RefreshPrototypes();
             }
         }
-//        Debug.Log(averageHeight);
-        averageHeight /= (height * width);
-        averageHeight /= CHUNKS;
-       // Debug.Log(averageHeight);
     }
     int terrno = 0;
     public int noOfTreesPerTerrain = 0;
     #endregion
 
-	#region ADDING TREES
+    #region AddDetail Prototypes
+    public GameObject StonePrototype = null;
+    DetailPrototype[] setDetails(TerrainData td)
+    {
+        DetailPrototype[] dProtos = new DetailPrototype[detailObjects.Length + 1];
+        for (int i = 0; i < detailObjects.Length; i++)
+        {
+            dProtos[i] = new DetailPrototype();
+            dProtos[i].prototypeTexture = detailObjects[i];
+            dProtos[i].healthyColor = Color.white;
+            dProtos[i].dryColor = Color.black;
+            dProtos[i].noiseSpread = 0f;
+            dProtos[i].maxHeight = 1;
+            dProtos[i].maxWidth = 1;
+            dProtos[i].renderMode = DetailRenderMode.Grass;
+            dProtos[i].usePrototypeMesh = false;
+        }
+        dProtos[detailObjects.Length] = new DetailPrototype();
+        dProtos[detailObjects.Length].prototype = StonePrototype;
+        dProtos[detailObjects.Length].healthyColor = Color.white;
+        dProtos[detailObjects.Length].dryColor = Color.black;
+        dProtos[detailObjects.Length].noiseSpread = 0f;
+        dProtos[detailObjects.Length].maxHeight = 1;
+        dProtos[detailObjects.Length].maxWidth = 1;
+        dProtos[detailObjects.Length].renderMode = DetailRenderMode.VertexLit;
+        dProtos[detailObjects.Length].usePrototypeMesh = true;
+        return dProtos;
+    }
+
+    int[,] getDetailLayers(TerrainData td)
+    {
+
+        int[,] details = new int[width, length];
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < length; j++)
+            {
+                var ht = td.GetHeight(i, j);
+                if (ht > height * 0 && ht < height * 0.25)
+                {
+                    details[i, j] = rand.Next(0, detailObjects.Length);
+                }
+                else
+                    details[i, j] = 0;
+                Debug.Log("Detail " + details[i, j]);
+            }
+        }
+
+        return details;
+    }
+    #endregion
+
+    #region ADDING TREES
     public GameObject water;
-	void GenerateTrees()
-	{
+    void GenerateTrees()
+    {
         int treesAdd = 0;
         foreach (var terr in terrain)
         {
             var t = terr.GetComponent<Terrain>();
-
-            Debug.Log("Terrain Name: " + terr.name + "Added: " + treesAdd);
+          //  Debug.Log("Terrain Name: " + terr.name + "Added: " + treesAdd);
             treesAdd = 0;
             var totalTrees = noOfTreesPerTerrain;
             totalTrees += rand.Next(0, 30);
             for (int i = 0; i < totalTrees; i++)
             {
-                Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble() );
+                Vector2 r = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble());
                 var treeHt = (float)SimplexNoise.noise(r.x * rand.Next(0, width), r.y * rand.Next(0, length));
                 treeHt = treeHt < 0 ? treeHt * -1 : treeHt;
-                var ht = t.terrainData.GetHeight((int)r.x, (int)r.y);
-                var h1 = 0.1 * height;
-                var h2 = 0.4 * height;
-               // if (ht > h1 && ht < h2)
                 {
-                    //Debug.Log(2.5f * treeHt);
                     TreeInstance ti = new TreeInstance();
                     ti.prototypeIndex = rand.Next(0, _treeInstance.Length);
                     ti.position = new Vector3(r.x, 0, r.y);
@@ -658,42 +699,22 @@ public class perlinMover : MonoBehaviour
                     ti.color = Color.white;
                     ti.heightScale = 2.5f + (float)rand.NextDouble();
                     ti.widthScale = 4.5f * treeHt;
+                    terr.GetComponent<Terrain>().castShadows = false;
                     terr.GetComponent<Terrain>().AddTreeInstance(ti);
-                    
                     treesAdd++;
                 }
-                //else
-                {
-                   // i--;
-                }
-             
             }
-
-            terr.GetComponent<Terrain>().Flush();
-            terr.GetComponent<Terrain>().terrainData.RefreshPrototypes();
         }
-	}
-
-    void GenerateTreesAtPoint(int x, int y, Terrain t, params object[] otherParams)
-    {
-        var r = new Vector2(x, y);
-        TreeInstance ti = new TreeInstance();
-        ti.position = new Vector3(r.x, 0, r.y);
-        ti.lightmapColor = Color.white;
-        ti.color = Color.white;
-        ti.heightScale = (float)rand.NextDouble();
-        ti.widthScale = (float)rand.NextDouble();
-        t.AddTreeInstance(ti);
     }
-	#endregion
+    #endregion
 
-	#region Perlin
-	const int PERM_SIZE = 256;
-	const int DIMENSIONS = 3;
-	public static float[,] randomArray = new float[PERM_SIZE + PERM_SIZE + 2, 3];
-	public static int[] permutation = new int[PERM_SIZE + PERM_SIZE + 2];
-	void perlinCreateArrays(System.Random rand)
-	{
+    #region Perlin
+    const int PERM_SIZE = 256;
+    const int DIMENSIONS = 3;
+    public static float[,] randomArray = new float[PERM_SIZE + PERM_SIZE + 2, 3];
+    public static int[] permutation = new int[PERM_SIZE + PERM_SIZE + 2];
+    void perlinCreateArrays(System.Random rand)
+    {
         float s;
         Vector3 tmp;
         float[] v = new float[DIMENSIONS];
@@ -896,8 +917,6 @@ public class perlinMover : MonoBehaviour
 
         return pos;
     }
-
-    decimal averageHeight = 0;
     // Normalize all data
     private float[,] normalizePerlin(ref float[,] heightMap, Vector2 arraySize)
     {
@@ -918,13 +937,6 @@ public class perlinMover : MonoBehaviour
             {
                 float normalisedHeight = ((heightMap[Mx, My] - lowestPoint) / heightRange) * normalisedHeightRange;
                 heightMap[Mx, My] = normaliseMin + (float)normalisedHeight;
-                try
-                {
-                    averageHeight += (double)heightMap[Mx, My] == double.NaN ? 0 : (decimal)heightMap[Mx, My];
-                }
-                catch (System.Exception)
-                {
-                }
             }
         }
 
@@ -974,7 +986,7 @@ public class perlinMover : MonoBehaviour
         int inc = 1;
         if (regenFlag)
             inc++;
-        for (i = 0; i < voronoiCells; i+=inc)
+        for (i = 0; i < voronoiCells; i += inc)
         {
             Peak newPeak = new Peak();
             int xCoord = (int)Mathf.Floor(UnityEngine.Random.value * Tx);
@@ -991,9 +1003,9 @@ public class perlinMover : MonoBehaviour
         int Mx;
         int My;
         float highestScore = 0.0f;
-        for (My = 0; My < Ty; My+=inc)
+        for (My = 0; My < Ty; My += inc)
         {
-            for (Mx = 0; Mx < Tx; Mx+=inc)
+            for (Mx = 0; Mx < Tx; Mx += inc)
             {
                 ArrayList peakDistances = new ArrayList();
                 try
@@ -1060,7 +1072,6 @@ public class perlinMover : MonoBehaviour
             {
                 float normalisedHeight = heightMap[Mx, My] * (1.0f / highestScore);
                 heightMap[Mx, My] = normalisedHeight;
-                averageHeight = averageHeight + (decimal)heightMap[Mx, My];
             }
         }
         return heightMap;
@@ -1070,13 +1081,10 @@ public class perlinMover : MonoBehaviour
 
     #region Recalculate Noise
     int m_xOff, m_zOff;
-    
     void CalcNoise(Terrain t)
     {
-        perlinGain = (float)rand.NextDouble();
-        voronoiCells = 8;
-        var heightMap = t.terrainData.GetHeights(0, 0, (int)width, (int)length);     
-        heightMap = k_perlin(heightMap, width, length, perlinGain, 0, 0, 0, true);
+        var heightMap = t.terrainData.GetHeights(0, 0, (int)width, (int)length);
+        heightMap = k_perlin(heightMap, width, length, perlinGain, 0, m_xOff, m_zOff, true);
         NewTextures(t, heightMap, width, height);
         t.terrainData.RefreshPrototypes();
         t.terrainData.SetHeights(0, 0, heightMap);
@@ -1090,7 +1098,7 @@ public class perlinMover : MonoBehaviour
             {
                 #region RE - TEXTURING
                 var CurrentHeight = heightMap[i, j];
-                float[, ,] singlePoint = new float[1,1,7];
+                float[, ,] singlePoint = new float[1, 1, 7];
                 var blendFactor = (float)rand.NextDouble();
                 if (CurrentHeight < 0.2f && CurrentHeight > 0.0f)
                 {
@@ -1112,7 +1120,7 @@ public class perlinMover : MonoBehaviour
                         singlePoint[0, 0, 4] = 0f;
                         singlePoint[0, 0, 5] = 0f;
                         singlePoint[0, 0, 6] = 0f;
-                    //    GenerateTreesAtPoint(i, j, t, null);
+                        //    GenerateTreesAtPoint(i, j, t, null);
                     }
                     else
                         if (CurrentHeight < 0.6)
@@ -1151,8 +1159,500 @@ public class perlinMover : MonoBehaviour
             }
         }
     }
-
-    
     #endregion
 
+    #region STICHING
+
+    void stichAll(ref Terrain main, Terrain left, Terrain top, Terrain right, Terrain bottom)
+    {
+        try
+        {
+            float equalizer = 0;
+            if (left != null)
+            {
+                var m_left = getLeft(main);
+                var l_right = getRight(left);
+                float[,] bufferLeft = new float[length, 1];
+                for (int i = 0; i < length; i++)
+                {
+                    try
+                    {
+                        equalizer += m_left[i, 0];
+                        equalizer += l_right[i, 0];
+                        equalizer /= 2;
+                        bufferLeft[i, 0] = equalizer;
+                    }
+                    catch (Exception _e)
+                    {
+                        Debug.Log(_e.Message);
+                    }
+                }
+                try
+                {
+                    main.terrainData.SetHeights(0, 0, bufferLeft);
+                }
+                catch (Exception _e)
+                {
+                    Debug.Log(_e.Message);
+                }
+            }
+
+            if (top != null)
+            {
+
+                var m_top = getTop(main);
+                var t_bot = getBottom(top);
+                equalizer = 0;
+                float[,] bufferTop = new float[1, width];
+                for (int i = 0; i < width; i++)
+                {
+                    try
+                    {
+                        equalizer += m_top[0, i];
+                        equalizer += t_bot[0, i];
+                        equalizer /= 2;
+                        bufferTop[0, i] = equalizer;
+                    }
+                    catch (Exception _e)
+                    {
+                        Debug.Log(_e.Message);
+                    }
+                } try
+                {
+                    main.terrainData.SetHeights(0, length - 1, bufferTop);
+                }
+                catch (Exception _e)
+                {
+                    Debug.Log(_e.Message);
+                }
+            }
+
+
+            if (right != null)
+            {
+                var m_right = getRight(main);
+                var r_left = getLeft(right);
+                float[,] bufferRight = new float[length, 1];
+                equalizer = 0;
+                for (int i = 0; i < length; i++)
+                {
+                    try
+                    {
+                        equalizer += m_right[i, 0];
+                        equalizer += r_left[i, 0];
+                        equalizer /= 2;
+                        bufferRight[i, 0] = equalizer;
+                    }
+                    catch (Exception _e)
+                    {
+                        Debug.Log(_e.Message);
+                    }
+                }
+                try
+                {
+                    main.terrainData.SetHeights(width - 1, 0, bufferRight);
+                }
+                catch (Exception _e)
+                {
+                    Debug.Log(_e.Message);
+                }
+            }
+
+            if (bottom != null)
+            {
+                var m_bot = getBottom(main);
+                var b_top = getTop(bottom);
+                equalizer = 0;
+                float[,] bufferBottom = new float[1, width];
+
+                for (int i = 0; i < width; i++)
+                {
+                    try
+                    {
+                        equalizer += m_bot[0, i];
+                        equalizer += b_top[0, i];
+                        equalizer /= 2;
+                        bufferBottom[0, i] = equalizer;
+                    }
+                    catch (Exception _e)
+                    {
+                        Debug.Log(_e.Message);
+                    }
+                }
+                try
+                {
+                    main.terrainData.SetHeights(width, 1, bufferBottom);
+                }
+                catch (Exception _e)
+                {
+                    Debug.Log(_e.Message);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+        }
+    }
+
+    private float[,] getLeft(Terrain t)
+    {
+        return t.terrainData.GetHeights(0, 0, 1, length);
+    }
+
+    float[,] getTop(Terrain t)
+    {
+        return t.terrainData.GetHeights(0, length - 1, width, 1);
+    }
+
+    float[,] getRight(Terrain t)
+    {
+        return t.terrainData.GetHeights(width - 1, 0, 1, length);
+    }
+
+    float[,] getBottom(Terrain t)
+    {
+        return t.terrainData.GetHeights(0, 0, width, 1);
+    }
+
+    private void loadBuffers()
+    {
+
+    }
+    #endregion
 }
+
+
+#region SIMPLEX NOISE
+// copied and modified from http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
+
+public class SimplexNoise
+{  // Simplex noise in 2D, 3D and 4D
+    private static int[][] grad3 = new int[][] {
+                                 new int[] {1,1,0}, new int[] {-1,1,0}, new int[] {1,-1,0}, new int[] {-1,-1,0},
+                                 new int[] {1,0,1}, new int[] {-1,0,1}, new int[] {1,0,-1}, new int[] {-1,0,-1},
+                                 new int[] {0,1,1}, new int[] {0,-1,1}, new int[] {0,1,-1}, new int[] {0,-1,-1}};
+    private static int[][] grad4 = new int[][] {
+                   new int[] {0,1,1,1},  new int[] {0,1,1,-1},  new int[] {0,1,-1,1},  new int[] {0,1,-1,-1},
+                   new int[] {0,-1,1,1}, new int[] {0,-1,1,-1}, new int[] {0,-1,-1,1}, new int[] {0,-1,-1,-1},
+                   new int[] {1,0,1,1},  new int[] {1,0,1,-1},  new int[] {1,0,-1,1},  new int[] {1,0,-1,-1},
+                   new int[] {-1,0,1,1}, new int[] {-1,0,1,-1}, new int[] {-1,0,-1,1}, new int[] {-1,0,-1,-1},
+                   new int[] {1,1,0,1},  new int[] {1,1,0,-1},  new int[] {1,-1,0,1},  new int[] {1,-1,0,-1},
+                   new int[] {-1,1,0,1}, new int[] {-1,1,0,-1}, new int[] {-1,-1,0,1}, new int[] {-1,-1,0,-1},
+                   new int[] {1,1,1,0},  new int[] {1,1,-1,0},  new int[] {1,-1,1,0},  new int[] {1,-1,-1,0},
+                   new int[] {-1,1,1,0}, new int[] {-1,1,-1,0}, new int[] {-1,-1,1,0}, new int[] {-1,-1,-1,0}};
+    private static int[] p = {151,160,137,91,90,15,
+  131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+  190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+  88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+  77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+  102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+  135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+  5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+  223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+  129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+  251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+  49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+  138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180};
+    // To remove the need for index wrapping, double the permutation table length
+    private static int[] perm = new int[512];
+    static SimplexNoise() { for (int i = 0; i < 512; i++) perm[i] = p[i & 255]; } // moved to constructor
+    // A lookup table to traverse the simplex around a given point in 4D.
+    // Details can be found where this table is used, in the 4D noise method.
+    private static int[][] simplex = new int[][] {
+    new int[] {0,1,2,3}, new int[] {0,1,3,2}, new int[] {0,0,0,0}, new int[] {0,2,3,1}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {1,2,3,0},
+    new int[] {0,2,1,3}, new int[] {0,0,0,0}, new int[] {0,3,1,2}, new int[] {0,3,2,1}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {1,3,2,0},
+    new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0},
+    new int[] {1,2,0,3}, new int[] {0,0,0,0}, new int[] {1,3,0,2}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {2,3,0,1}, new int[] {2,3,1,0},
+    new int[] {1,0,2,3}, new int[] {1,0,3,2}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {2,0,3,1}, new int[] {0,0,0,0}, new int[] {2,1,3,0},
+    new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0},
+    new int[] {2,0,1,3}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {3,0,1,2}, new int[] {3,0,2,1}, new int[] {0,0,0,0}, new int[] {3,1,2,0},
+    new int[] {2,1,0,3}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {3,1,0,2}, new int[] {0,0,0,0}, new int[] {3,2,0,1}, new int[] {3,2,1,0}};
+    // This method is a *lot* faster than using (int)Mathf.floor(x)
+    private static int fastfloor(double x)
+    {
+        return x > 0 ? (int)x : (int)x - 1;
+    }
+    private static double dot(int[] g, double x, double y)
+    {
+        return g[0] * x + g[1] * y;
+    }
+    private static double dot(int[] g, double x, double y, double z)
+    {
+        return g[0] * x + g[1] * y + g[2] * z;
+    }
+    private static double dot(int[] g, double x, double y, double z, double w)
+    {
+        return g[0] * x + g[1] * y + g[2] * z + g[3] * w;
+    }  // 2D simplex noise
+    public static double noise(double xin, double yin)
+    {
+        double n0, n1, n2; // Noise contributions from the three corners
+        // Skew the input space to determine which simplex cell we're in
+        double F2 = 0.5 * (Mathf.Sqrt(3.0f) - 1.0);
+        double s = (xin + yin) * F2; // Hairy factor for 2D
+        int i = fastfloor(xin + s);
+        int j = fastfloor(yin + s);
+        double G2 = (3.0 - Mathf.Sqrt(3.0f)) / 6.0;
+        double t = (i + j) * G2;
+        double X0 = i - t; // Unskew the cell origin back to (x,y) space
+        double Y0 = j - t;
+        double x0 = xin - X0; // The x,y distances from the cell origin
+        double y0 = yin - Y0;
+        // For the 2D case, the simplex shape is an equilateral triangle.
+        // Determine which simplex we are in.
+        int i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
+        if (x0 > y0) { i1 = 1; j1 = 0; } // lower triangle, XY order: (0,0)->(1,0)->(1,1)
+        else { i1 = 0; j1 = 1; }      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
+        // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
+        // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+        // c = (3-Sqrt(3))/6
+        double x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
+        double y1 = y0 - j1 + G2;
+        double x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
+        double y2 = y0 - 1.0 + 2.0 * G2;
+        // Work out the hashed gradient indices of the three simplex corners
+        int ii = i & 255;
+        int jj = j & 255;
+        int gi0 = perm[ii + perm[jj]] % 12;
+        int gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
+        int gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
+        // Calculate the contribution from the three corners
+        double t0 = 0.5 - x0 * x0 - y0 * y0;
+        if (t0 < 0) n0 = 0.0;
+        else
+        {
+            t0 *= t0;
+            n0 = t0 * t0 * dot(grad3[gi0], x0, y0);  // (x,y) of grad3 used for 2D gradient
+        }
+        double t1 = 0.5 - x1 * x1 - y1 * y1;
+        if (t1 < 0) n1 = 0.0;
+        else
+        {
+            t1 *= t1;
+            n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
+        } double t2 = 0.5 - x2 * x2 - y2 * y2;
+        if (t2 < 0) n2 = 0.0;
+        else
+        {
+            t2 *= t2;
+            n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
+        }
+        // Add contributions from each corner to get the final noise value.
+        // The result is scaled to return values in the interval [-1,1].
+        return 70.0 * (n0 + n1 + n2);
+    }
+    // 3D simplex noise
+    public static double noise(double xin, double yin, double zin)
+    {
+        double n0, n1, n2, n3; // Noise contributions from the four corners
+        // Skew the input space to determine which simplex cell we're in
+        double F3 = 1.0 / 3.0;
+        double s = (xin + yin + zin) * F3; // Very nice and simple skew factor for 3D
+        int i = fastfloor(xin + s);
+        int j = fastfloor(yin + s);
+        int k = fastfloor(zin + s);
+        double G3 = 1.0 / 6.0; // Very nice and simple unskew factor, too
+        double t = (i + j + k) * G3;
+        double X0 = i - t; // Unskew the cell origin back to (x,y,z) space
+        double Y0 = j - t;
+        double Z0 = k - t;
+        double x0 = xin - X0; // The x,y,z distances from the cell origin
+        double y0 = yin - Y0;
+        double z0 = zin - Z0;
+        // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
+        // Determine which simplex we are in.
+        int i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
+        int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
+        if (x0 >= y0)
+        {
+            if (y0 >= z0)
+            { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // X Y Z order
+            else if (x0 >= z0) { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 0; k2 = 1; } // X Z Y order
+            else { i1 = 0; j1 = 0; k1 = 1; i2 = 1; j2 = 0; k2 = 1; } // Z X Y order
+        }
+        else
+        { // x0<y0
+            if (y0 < z0) { i1 = 0; j1 = 0; k1 = 1; i2 = 0; j2 = 1; k2 = 1; } // Z Y X order
+            else if (x0 < z0) { i1 = 0; j1 = 1; k1 = 0; i2 = 0; j2 = 1; k2 = 1; } // Y Z X order
+            else { i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // Y X Z order
+        }
+        // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
+        // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
+        // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
+        // c = 1/6.
+        double x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
+        double y1 = y0 - j1 + G3;
+        double z1 = z0 - k1 + G3;
+        double x2 = x0 - i2 + 2.0 * G3; // Offsets for third corner in (x,y,z) coords
+        double y2 = y0 - j2 + 2.0 * G3;
+        double z2 = z0 - k2 + 2.0 * G3;
+        double x3 = x0 - 1.0 + 3.0 * G3; // Offsets for last corner in (x,y,z) coords
+        double y3 = y0 - 1.0 + 3.0 * G3;
+        double z3 = z0 - 1.0 + 3.0 * G3;
+        // Work out the hashed gradient indices of the four simplex corners
+        int ii = i & 255;
+        int jj = j & 255;
+        int kk = k & 255;
+        int gi0 = perm[ii + perm[jj + perm[kk]]] % 12;
+        int gi1 = perm[ii + i1 + perm[jj + j1 + perm[kk + k1]]] % 12;
+        int gi2 = perm[ii + i2 + perm[jj + j2 + perm[kk + k2]]] % 12;
+        int gi3 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]] % 12;
+        // Calculate the contribution from the four corners
+        double t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0;
+        if (t0 < 0) n0 = 0.0;
+        else
+        {
+            t0 *= t0;
+            n0 = t0 * t0 * dot(grad3[gi0], x0, y0, z0);
+        }
+        double t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
+        if (t1 < 0) n1 = 0.0;
+        else
+        {
+            t1 *= t1;
+            n1 = t1 * t1 * dot(grad3[gi1], x1, y1, z1);
+        }
+        double t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
+        if (t2 < 0) n2 = 0.0;
+        else
+        {
+            t2 *= t2;
+            n2 = t2 * t2 * dot(grad3[gi2], x2, y2, z2);
+        }
+        double t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
+        if (t3 < 0) n3 = 0.0;
+        else
+        {
+            t3 *= t3;
+            n3 = t3 * t3 * dot(grad3[gi3], x3, y3, z3);
+        }
+        // Add contributions from each corner to get the final noise value.
+        // The result is scaled to stay just inside [-1,1]
+        return 32.0 * (n0 + n1 + n2 + n3);
+    }  // 4D simplex noise
+    double noise(double x, double y, double z, double w)
+    {
+
+        // The skewing and unskewing factors are hairy again for the 4D case
+        double F4 = (Mathf.Sqrt(5.0f) - 1.0) / 4.0;
+        double G4 = (5.0 - Mathf.Sqrt(5.0f)) / 20.0;
+        double n0, n1, n2, n3, n4; // Noise contributions from the five corners
+        // Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
+        double s = (x + y + z + w) * F4; // Factor for 4D skewing
+        int i = fastfloor(x + s);
+        int j = fastfloor(y + s);
+        int k = fastfloor(z + s);
+        int l = fastfloor(w + s);
+        double t = (i + j + k + l) * G4; // Factor for 4D unskewing
+        double X0 = i - t; // Unskew the cell origin back to (x,y,z,w) space
+        double Y0 = j - t;
+        double Z0 = k - t;
+        double W0 = l - t;
+        double x0 = x - X0;  // The x,y,z,w distances from the cell origin
+        double y0 = y - Y0;
+        double z0 = z - Z0;
+        double w0 = w - W0;
+        // For the 4D case, the simplex is a 4D shape I won't even try to describe.
+        // To find out which of the 24 possible simplices we're in, we need to
+        // determine the magnitude ordering of x0, y0, z0 and w0.
+        // The method below is a good way of finding the ordering of x,y,z,w and
+        // then find the correct traversal order for the simplex we’re in.
+        // First, six pair-wise comparisons are performed between each possible pair
+        // of the four coordinates, and the results are used to add up binary bits
+        // for an integer index.
+        int c1 = (x0 > y0) ? 32 : 0;
+        int c2 = (x0 > z0) ? 16 : 0;
+        int c3 = (y0 > z0) ? 8 : 0;
+        int c4 = (x0 > w0) ? 4 : 0;
+        int c5 = (y0 > w0) ? 2 : 0;
+        int c6 = (z0 > w0) ? 1 : 0;
+        int c = c1 + c2 + c3 + c4 + c5 + c6;
+        int i1, j1, k1, l1; // The integer offsets for the second simplex corner
+        int i2, j2, k2, l2; // The integer offsets for the third simplex corner
+        int i3, j3, k3, l3; // The integer offsets for the fourth simplex corner
+        // simplex[c] is a 4-vector with the numbers 0, 1, 2 and 3 in some order.
+        // Many values of c will never occur, since e.g. x>y>z>w makes x<z, y<w and x<w
+        // impossible. Only the 24 indices which have non-zero entries make any sense.
+        // We use a thresholding to set the coordinates in turn from the largest magnitude.
+        // The number 3 in the "simplex" array is at the position of the largest coordinate.
+        i1 = simplex[c][0] >= 3 ? 1 : 0;
+        j1 = simplex[c][1] >= 3 ? 1 : 0;
+        k1 = simplex[c][2] >= 3 ? 1 : 0;
+        l1 = simplex[c][3] >= 3 ? 1 : 0;
+        // The number 2 in the "simplex" array is at the second largest coordinate.
+        i2 = simplex[c][0] >= 2 ? 1 : 0;
+        j2 = simplex[c][1] >= 2 ? 1 : 0; k2 = simplex[c][2] >= 2 ? 1 : 0;
+        l2 = simplex[c][3] >= 2 ? 1 : 0;
+        // The number 1 in the "simplex" array is at the second smallest coordinate.
+        i3 = simplex[c][0] >= 1 ? 1 : 0;
+        j3 = simplex[c][1] >= 1 ? 1 : 0;
+        k3 = simplex[c][2] >= 1 ? 1 : 0;
+        l3 = simplex[c][3] >= 1 ? 1 : 0;
+        // The fifth corner has all coordinate offsets = 1, so no need to look that up.
+        double x1 = x0 - i1 + G4; // Offsets for second corner in (x,y,z,w) coords
+        double y1 = y0 - j1 + G4;
+        double z1 = z0 - k1 + G4;
+        double w1 = w0 - l1 + G4;
+        double x2 = x0 - i2 + 2.0 * G4; // Offsets for third corner in (x,y,z,w) coords
+        double y2 = y0 - j2 + 2.0 * G4;
+        double z2 = z0 - k2 + 2.0 * G4;
+        double w2 = w0 - l2 + 2.0 * G4;
+        double x3 = x0 - i3 + 3.0 * G4; // Offsets for fourth corner in (x,y,z,w) coords
+        double y3 = y0 - j3 + 3.0 * G4;
+        double z3 = z0 - k3 + 3.0 * G4;
+        double w3 = w0 - l3 + 3.0 * G4;
+        double x4 = x0 - 1.0 + 4.0 * G4; // Offsets for last corner in (x,y,z,w) coords
+        double y4 = y0 - 1.0 + 4.0 * G4;
+        double z4 = z0 - 1.0 + 4.0 * G4;
+        double w4 = w0 - 1.0 + 4.0 * G4;
+        // Work out the hashed gradient indices of the five simplex corners
+        int ii = i & 255;
+        int jj = j & 255;
+        int kk = k & 255;
+        int ll = l & 255;
+        int gi0 = perm[ii + perm[jj + perm[kk + perm[ll]]]] % 32;
+        int gi1 = perm[ii + i1 + perm[jj + j1 + perm[kk + k1 + perm[ll + l1]]]] % 32;
+        int gi2 = perm[ii + i2 + perm[jj + j2 + perm[kk + k2 + perm[ll + l2]]]] % 32;
+        int gi3 = perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32;
+        int gi4 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32;
+        // Calculate the contribution from the five corners
+        double t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
+        if (t0 < 0) n0 = 0.0;
+        else
+        {
+            t0 *= t0;
+            n0 = t0 * t0 * dot(grad4[gi0], x0, y0, z0, w0);
+        }
+        double t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
+        if (t1 < 0) n1 = 0.0;
+        else
+        {
+            t1 *= t1;
+            n1 = t1 * t1 * dot(grad4[gi1], x1, y1, z1, w1);
+        }
+        double t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
+        if (t2 < 0) n2 = 0.0;
+        else
+        {
+            t2 *= t2;
+            n2 = t2 * t2 * dot(grad4[gi2], x2, y2, z2, w2);
+        } double t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
+        if (t3 < 0) n3 = 0.0;
+        else
+        {
+            t3 *= t3;
+            n3 = t3 * t3 * dot(grad4[gi3], x3, y3, z3, w3);
+        }
+        double t4 = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
+        if (t4 < 0) n4 = 0.0;
+        else
+        {
+            t4 *= t4;
+            n4 = t4 * t4 * dot(grad4[gi4], x4, y4, z4, w4);
+        }
+        // Sum up and scale the result to cover the range [-1,1]
+        return 27.0 * (n0 + n1 + n2 + n3 + n4);
+    }
+}
+#endregion
