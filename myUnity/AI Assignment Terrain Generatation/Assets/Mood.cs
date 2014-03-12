@@ -20,18 +20,18 @@ public class Mood : MonoBehaviour {
             if (rand.NextDouble() > 0.9)
             {
                 _sandStorm.GetComponent<ParticleEmitter>().maxEmission = 0;
-                _snowFX.GetComponent<ParticleEmitter>().maxEmission = 25000;
+                _snowFX.GetComponent<ParticleEmitter>().maxEmission = 2000;
             }
             else
             {
                 _sandStorm.GetComponent<ParticleEmitter>().maxEmission = 1000;
-                _snowFX.GetComponent<ParticleEmitter>().maxEmission = 25000;
+                _snowFX.GetComponent<ParticleEmitter>().maxEmission = 400;
             }
         }
         else
         {
             _sandStorm.GetComponent<ParticleEmitter>().maxEmission = 250000;
-            _snowFX.GetComponent<ParticleEmitter>().maxEmission = 2500;
+            _snowFX.GetComponent<ParticleEmitter>().maxEmission = 100;
         }
         var _skyMood = rand.Next(0, skyboxMaterials.Length);
         if(_skyMood <=5 )

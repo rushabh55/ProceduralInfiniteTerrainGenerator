@@ -143,7 +143,6 @@ public class perlinMover : MonoBehaviour
         terrain9.SetNeighbors(terrain6, null, null, terrain8);
         try
         {
-            Debug.Log("Start");
             stichAll(ref terrain1, null, terrain2, terrain4, null);
             stichAll(ref terrain2, null, terrain3, terrain5, terrain1);
             stichAll(ref terrain3, null, null, terrain6, terrain2);
@@ -153,11 +152,9 @@ public class perlinMover : MonoBehaviour
             stichAll(ref terrain7, terrain4, terrain8, null, null);
             stichAll(ref terrain8, terrain5, terrain9, null, terrain9);
             stichAll(ref terrain9, terrain6, null, null, terrain8);
-            Debug.Log("End");
         }
         catch (Exception _e)
         {
-            Debug.Log(_e.Message);
         }
         terrain1.Flush();
         terrain2.Flush();
@@ -203,6 +200,8 @@ public class perlinMover : MonoBehaviour
                 m_xOff += width;
                 MovePosX();
                 moved = true;
+
+                _prevPos.x = this.transform.position.x;
             }
 
             if (this.transform.position.x / TILE_SIZE - _prevPos.x / TILE_SIZE < -1 && !moved)
@@ -212,6 +211,8 @@ public class perlinMover : MonoBehaviour
                 MoveNegX();
                 m_xOff *= -1;
                 moved = true;
+
+                _prevPos.x = this.transform.position.x;
             }
 
             if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE < -1 && !moved)
@@ -221,6 +222,7 @@ public class perlinMover : MonoBehaviour
                 MoveNegZ();
                 m_zOff *= -1;
                 moved = true;
+                _prevPos.z = this.transform.position.z;
             }
 
             if (this.transform.position.z / TILE_SIZE - _prevPos.z / TILE_SIZE > 1 && !moved)
@@ -228,13 +230,13 @@ public class perlinMover : MonoBehaviour
                 m_zOff += length;
                 MovePosZ();
                 moved = true;
+                _prevPos.z = this.transform.position.z;
             }
 
             if (moved)
             {
                 NormalizeEverything();
                 moved = !moved;
-                _prevPos = this.transform.position;
             }
 
             if (Input.GetKeyDown(KeyCode.LeftShift))
@@ -314,10 +316,8 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[i, 0].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 1);
+            terrain[i, 0].transform.position = terrain[i, 2].transform.position + new Vector3(0, 0, length - 2);
             CalcNoise(terrain[i, 0].GetComponent<Terrain>());
-            Debug.Log("X : " + m_xOff);
-            Debug.Log("Z : " + m_zOff);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -345,10 +345,8 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[i, 2].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length - 1);
+            terrain[i, 2].transform.position = terrain[i, 0].transform.position - new Vector3(0, 0, length - 2);
             CalcNoise(terrain[i, 2].GetComponent<Terrain>());
-            Debug.Log("X : " + m_xOff);
-            Debug.Log("Z : " + m_zOff);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -377,10 +375,8 @@ public class perlinMover : MonoBehaviour
 
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[2, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 1, 0, 0);
+            terrain[2, i].transform.position = terrain[0, i].transform.position - new Vector3(width - 2, 0, 0);
             CalcNoise(terrain[2, i].GetComponent<Terrain>());
-            Debug.Log("X : " + m_xOff);
-            Debug.Log("Z : " + m_zOff);
         }
 
         for (int i = 0; i < CHUNKS; i++)
@@ -411,11 +407,9 @@ public class perlinMover : MonoBehaviour
         m_zOff -= 3 * length;
         for (int i = 0; i < CHUNKS; i++)
         {
-            terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 1, 0, 0);
+            terrain[0, i].transform.position = terrain[2, i].transform.position + new Vector3(width - 2, 0, 0);
             CalcNoise(terrain[0, i].GetComponent<Terrain>());
             m_zOff += length;
-            Debug.Log("X : " + m_xOff);
-            Debug.Log("Z : " + m_zOff);
         }
         m_zOff = n_zoffset;
 
@@ -518,7 +512,7 @@ public class perlinMover : MonoBehaviour
                 tData[col * CHUNKS + row] = new TerrainData();
                 tData[col * CHUNKS + row].heightmapResolution = width;
                 tData[col * CHUNKS + row].alphamapResolution = ALPHA_TILE_SIZE;
-                tData[col * CHUNKS + row].SetDetailResolution(width - 1, 8);
+                tData[col * CHUNKS + row].SetDetailResolution(ALPHA_TILE_SIZE, 16);
                 tData[col * CHUNKS + row].baseMapResolution = width - 1 + 1;
                 tData[col * CHUNKS + row].SetHeights(0, 0, heightMap[col * CHUNKS + row]);
                 tData[col * CHUNKS + row].size = new Vector3(width - 1, height, length - 1);
@@ -660,13 +654,20 @@ public class perlinMover : MonoBehaviour
             for (int j = 0; j < length; j++)
             {
                 var ht = td.GetHeight(i, j);
-                if (ht > height * 0 && ht < height * 0.25)
+                if (ht > height * 0.3 && ht < height * 0.335)
                 {
-                    details[i, j] = rand.Next(0, detailObjects.Length);
+                    var t = 1;
+                    details[i, j] = t;
                 }
                 else
-                    details[i, j] = 0;
-                Debug.Log("Detail " + details[i, j]);
+                {
+                    if (ht < height * 0.3)
+                    details[i, j] = 2;
+                    Debug.Log("ROCK");
+                }
+
+                //if (i == width || j == length)
+                    //details[i, j] = 1;
             }
         }
 
@@ -697,9 +698,9 @@ public class perlinMover : MonoBehaviour
                     ti.position = new Vector3(r.x, 0, r.y);
                     ti.lightmapColor = Color.white;
                     ti.color = Color.white;
-                    ti.heightScale = 2.5f + (float)rand.NextDouble();
-                    ti.widthScale = 4.5f * treeHt;
-                    terr.GetComponent<Terrain>().castShadows = false;
+                    ti.heightScale = 2.5f;
+                    ti.widthScale = 2.5f;
+                    terr.GetComponent<Terrain>().castShadows = true;
                     terr.GetComponent<Terrain>().AddTreeInstance(ti);
                     treesAdd++;
                 }
@@ -895,7 +896,7 @@ public class perlinMover : MonoBehaviour
     private float[,] k_perlin(float[,] pos, int width, int height,
             float gain, float zOffset, float positionX, float positionZ, bool regen)
     {
-
+        globalDetailStructure = new int[width, height];
         // since we want the noise to be consistent based on the indices
         // of the map, we scale and offset them
         for (int i = 0; i < width; i++)
@@ -909,6 +910,7 @@ public class perlinMover : MonoBehaviour
                     pos[i, j] = w;
                 else
                     pos[i, j] += w;
+                globalDetailStructure[i,j] = getDetailAtPoint(pos[i, j], 0);
             }
         }
 
@@ -917,6 +919,8 @@ public class perlinMover : MonoBehaviour
 
         return pos;
     }
+
+    int[,] globalDetailStructure;
     // Normalize all data
     private float[,] normalizePerlin(ref float[,] heightMap, Vector2 arraySize)
     {
@@ -1088,6 +1092,30 @@ public class perlinMover : MonoBehaviour
         NewTextures(t, heightMap, width, height);
         t.terrainData.RefreshPrototypes();
         t.terrainData.SetHeights(0, 0, heightMap);
+        t.terrainData.SetDetailLayer(0, 0, 0, globalDetailStructure);
+    }
+
+    int getDetailAtPoint(float ht, int detail)
+    {
+        if (ht > 1)
+            ht = ht / height;
+        if (ht > height * 0.05 && ht < height * 0.135)
+        {
+            if (rand.Next(0, 10) < 2)
+            {
+                var t = 0;
+                detail = t;
+            }
+        }
+        else
+        {
+            if (ht < height * 0.3)
+                if (rand.Next(0, 10) < 7)
+                {
+                    detail = 1;
+                }
+        }
+        return detail;
     }
 
     private void NewTextures(Terrain t, float[,] heightMap, int width, int length)
@@ -1161,7 +1189,7 @@ public class perlinMover : MonoBehaviour
     }
     #endregion
 
-    #region STICHING
+    #region STITCHING
 
     void stichAll(ref Terrain main, Terrain left, Terrain top, Terrain right, Terrain bottom)
     {
@@ -1172,15 +1200,16 @@ public class perlinMover : MonoBehaviour
             {
                 var m_left = getLeft(main);
                 var l_right = getRight(left);
-                float[,] bufferLeft = new float[length, 1];
-                for (int i = 0; i < length; i++)
+                float[,] bufferLeft = new float[64, 1];
+                for (int i = 0; i < 64; i++)
                 {
                     try
                     {
                         equalizer += m_left[i, 0];
                         equalizer += l_right[i, 0];
-                        equalizer /= 2;
-                        bufferLeft[i, 0] = equalizer;
+                        var t21 = Vector2.Lerp(new Vector2(m_left[i, 0], 0), new Vector2(l_right[i, 0], 0), 1);
+                        equalizer /= 4;
+                        bufferLeft[i, 0] = t21.x;
                     }
                     catch (Exception _e)
                     {
@@ -1203,15 +1232,16 @@ public class perlinMover : MonoBehaviour
                 var m_top = getTop(main);
                 var t_bot = getBottom(top);
                 equalizer = 0;
-                float[,] bufferTop = new float[1, width];
-                for (int i = 0; i < width; i++)
+                float[,] bufferTop = new float[1, 64];
+                for (int i = 0; i < 64; i++)
                 {
                     try
                     {
                         equalizer += m_top[0, i];
                         equalizer += t_bot[0, i];
-                        equalizer /= 2;
-                        bufferTop[0, i] = equalizer;
+                        var t21 = Vector2.Lerp(new Vector2(m_top[0, i], 0), new Vector2(t_bot[0, i], 0), 1);
+                        equalizer /=4;
+                        bufferTop[0, i] = t21.x;
                     }
                     catch (Exception _e)
                     {
@@ -1219,7 +1249,7 @@ public class perlinMover : MonoBehaviour
                     }
                 } try
                 {
-                    main.terrainData.SetHeights(0, length - 1, bufferTop);
+                    main.terrainData.SetHeights(0, 64 - 1, bufferTop);
                 }
                 catch (Exception _e)
                 {
@@ -1232,7 +1262,7 @@ public class perlinMover : MonoBehaviour
             {
                 var m_right = getRight(main);
                 var r_left = getLeft(right);
-                float[,] bufferRight = new float[length, 1];
+                float[,] bufferRight = new float[64, 1];
                 equalizer = 0;
                 for (int i = 0; i < length; i++)
                 {
@@ -1240,8 +1270,10 @@ public class perlinMover : MonoBehaviour
                     {
                         equalizer += m_right[i, 0];
                         equalizer += r_left[i, 0];
-                        equalizer /= 2;
-                        bufferRight[i, 0] = equalizer;
+                        equalizer /= 4;
+                        var t21 = Vector2.Lerp(new Vector2(m_right[i,0 ], 0), new Vector2(r_left[i, 0], 0), 1);
+                        
+                        bufferRight[i, 0] = t21.x;
                     }
                     catch (Exception _e)
                     {
@@ -1250,7 +1282,7 @@ public class perlinMover : MonoBehaviour
                 }
                 try
                 {
-                    main.terrainData.SetHeights(width - 1, 0, bufferRight);
+                    main.terrainData.SetHeights(64 - 1, 0, bufferRight);
                 }
                 catch (Exception _e)
                 {
@@ -1263,16 +1295,18 @@ public class perlinMover : MonoBehaviour
                 var m_bot = getBottom(main);
                 var b_top = getTop(bottom);
                 equalizer = 0;
-                float[,] bufferBottom = new float[1, width];
+                float[,] bufferBottom = new float[1, 64];
 
-                for (int i = 0; i < width; i++)
+                for (int i = 0; i < 64; i++)
                 {
                     try
                     {
                         equalizer += m_bot[0, i];
                         equalizer += b_top[0, i];
-                        equalizer /= 2;
-                        bufferBottom[0, i] = equalizer;
+                        equalizer /= 4;
+                        var t21 = Vector2.Lerp(new Vector2(m_bot[0, i], 0), new Vector2(b_top[0, i], 0), 1);
+                 
+                        bufferBottom[0, i] = t21.x;
                     }
                     catch (Exception _e)
                     {
@@ -1281,7 +1315,7 @@ public class perlinMover : MonoBehaviour
                 }
                 try
                 {
-                    main.terrainData.SetHeights(width, 1, bufferBottom);
+                    main.terrainData.SetHeights(64, 1, bufferBottom);
                 }
                 catch (Exception _e)
                 {
